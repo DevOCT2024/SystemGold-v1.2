@@ -1,0 +1,300 @@
+/* index.css */
+
+.EditTools{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    margin-right: 40px;
+    position: fixed; 
+    z-index: 20;
+}
+
+.editTools {
+    padding: 20px;
+    border-radius: 35px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    gap: 15px;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 70%;
+    background-color: white;
+    animation: fadeIn 1s ease forwards;
+}
+
+.TextOptions{
+    width: 30%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.ButtonsForFonts{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+}
+
+.textAlteration{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+
+.FontSizeAndOutline{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+}
+
+.FontSizeSelect{
+    width: 50%;
+}
+
+.OutlineSelect{
+    width: 50%;
+}
+
+
+.shapesOfEditTools{
+    display: flex;
+}
+
+
+.shapeButtons{
+    display: flex;
+    /* flex-direction: column; */
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.rectRadius{
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 50px;
+    display: flex;
+    gap: 10px;
+    align-items: start;
+    justify-content: center;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    right: -320px;
+    height: 130px;
+    background-color: white;
+    border-radius: 25px;
+}
+
+
+
+.DuplicateAndCut{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap:5px;
+}
+
+.historyButtons, .AdressAndDatePicker{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.datesInputs{
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 50px;
+    display: flex;
+    gap: 10px;
+    align-items: start;
+    justify-content: center;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    right: -250px;
+    height: 130px;
+    background-color: white;
+    border-radius: 25px;
+}
+
+.inputsDate{
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+}
+
+input[type="date"] {
+    -webkit-appearance: none; 
+    -moz-appearance: none;    
+    appearance: none;    
+    border:1px solid #ccc;
+}
+
+.RadioOfAdress{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.divisionEditTools{
+    border: 1px solid rgb(210, 206, 206);
+    height: 70px;
+    margin: 0;
+}
+
+
+.colorPicker input {
+    border: none;
+    border-radius: 4px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+
+.colorBar{
+    border-radius: 25px;
+    width: 60%;
+    height: 30px;
+    background-color: rgb(245, 217, 217);
+    border: 3px solid white;
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: -15px;
+    animation: fadeIn 1s ease forwards;
+}
+.contorno, .fundo{
+    font-family: 'Viga';
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.colorBar button{
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+
+.colorBar input{
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    padding: 0;
+}
+
+.selectedSolidOrGradient{
+    padding-top: 32.5px;
+    padding-bottom: 32.5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 34px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    gap: 15px;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 70%;
+    background-color: white;
+    animation: fadeIn 1s ease forwards;
+    
+}
+
+.selectedSolidOrGradient input{
+    padding: 0;
+    border: 0;
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+}
+
+
+.directionGradienteColor{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+}
+
+.rigthAndLeftButtons, .upAndDownButtons, .midAndExtremeButtons{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+
+
+.upToDown{
+    background-image: url("../../../../../../sources/backgroundButtonGradients/upToDown.svg");
+    background-size: cover;
+}
+
+.downToUp{
+    background-image: url('../../../../../../sources/backgroundButtonGradients/downToUp.svg');
+    background-size: cover;
+}
+
+.leftToRight{
+    background-image: url('../../../../../../sources/backgroundButtonGradients/leftToRight.svg');
+    background-size: cover;
+}
+
+.rigthToLeft{
+    background-image: url('../../../../../../sources/backgroundButtonGradients/rightToLeft.svg');
+    background-size: cover;
+}
+
+.midToExtreme{
+    background-image: url("../../../../../../sources/backgroundButtonGradients/1.png");
+    background-size: cover;
+}
+
+.rigthToLeft, .leftToRight, .upToDown, .downToUp, .midToExtreme{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: transparent;
+}
+
+
+
+
+
+
+
+.addressButton{
+    background-color: #ccc;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0; /* Começa invisível */
+        transform: translateY(-10px); /* Move para cima no início */
+    }
+    100% {
+        opacity: 1; /* Fica visível */
+        transform: translateY(0); /* Volta à posição original */
+    }
+}
+
+@keyframes opacity{
+    0% { opacity: 0; }
+    100%{opacity: 1;}
+}

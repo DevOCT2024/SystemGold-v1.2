@@ -1,0 +1,55 @@
+.select-container {
+    margin: 10px 0;            /* Espaçamento entre os selects */
+    display: flex;
+    flex-direction: column;    /* Organização em coluna */
+    width: 100%;               /* O container ocupará 100% da largura do container pai */
+}
+
+.custom-select {
+    padding: 8px 12px;         /* Espaçamento interno para o texto do select */
+    font-size: 0.8rem;           /* Tamanho da fonte */
+    border: 1px solid #ccc;    /* Borda cinza clara */
+    border-radius: 12px;        /* Bordas arredondadas */
+    background-color: white;   /* Fundo branco */
+    color: #333;               /* Cor do texto */
+    cursor: pointer;           /* Cursor de ponteiro ao passar sobre o select */
+    width: 100%;               /* O select ocupará 100% da largura do container pai */
+}
+
+/* Foco no campo select */
+.custom-select:focus {
+    border-color: #ff7f00;    /* Cor da borda ao focar */
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 127, 0, 0.5); /* Sombra laranja ao focar */
+}
+
+/* Estilos para o label */
+label {
+    margin-bottom: 5px;       /* Espaçamento entre o label e o campo select */
+    font-size: 1rem;          /* Tamanho da fonte */
+    color: #333;              /* Cor do texto */
+}
+
+/* Para telas pequenas, como smartphones */
+@media (max-width: 600px) {
+    .custom-select {
+        font-size: 0.9rem;    /* Reduz o tamanho da fonte em telas menores */
+        padding: 6px 10px;    /* Ajusta o espaçamento interno para tamanhos menores */
+    }
+
+    label {
+        font-size: 0.5rem;    /* Reduz o tamanho da fonte do label em telas menores */
+    }
+}
+
+/* Para telas muito pequenas, como telefones antigos */
+@media (max-width: 400px) {
+    .custom-select {
+        font-size: 0.8rem;    /* Reduz ainda mais o tamanho da fonte */
+        padding: 5px 8px;     /* Ajusta o espaçamento interno para telas muito pequenas */
+    }
+
+    label {
+        font-size: 0.8rem;    /* Ajusta o tamanho do label em telas muito pequenas */
+    }
+}

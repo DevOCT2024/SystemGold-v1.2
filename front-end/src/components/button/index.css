@@ -1,0 +1,25 @@
+button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 40px;
+    border-radius: 25px;
+    border: none;
+    background-color: #e62c31;
+    color: white;
+    cursor: pointer;
+    font-family: 'Segoe UI';
+}
+
+button:hover{
+    transition: 0.5s;
+    transform: scale(1.05);
+    box-shadow: inset 0px -30px 49px -33px rgba(87,11,11,1);
+}
+
+button:disabled{
+    background-color: #ccc;
+    transform: scale(1.0);
+    cursor: not-allowed;
+}

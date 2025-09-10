@@ -1,0 +1,167 @@
+
+/* CardCarousel.css */
+.carousel-container {
+  position: fixed;
+  left: 30%;
+  top: 230px;
+  width: 7%;  
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  z-index: 1000;  
+}
+
+.carousel-main {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.carousel-card {
+  position: absolute;
+  width: 300px;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  z-index: 1;
+  margin-bottom: 50px;
+}
+
+.main-card {
+  z-index: 2;
+}
+
+.previous-card {
+  margin-left: 60px;
+  margin-top: 40px;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+.next-card {
+  margin-left: 30px;
+  margin-top: 20px;
+  z-index: 1;
+}
+
+.card {
+  width: 250px;
+  height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-image {
+  width: 90%;
+  object-fit: cover;
+  /* border-top-left-radius: 15px;
+  border-top-right-radius: 15px; */
+  border-radius: 15px;
+}
+
+.carousel-thumbnails-container {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.prev-button,
+.next-button {
+  background-color: transparent;
+  color: #FF3D1F;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.prev-button:hover,
+.next-button:hover {
+  background-color: #FF3D1F;
+  color: #fff;
+}
+
+.carousel-thumbnails {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.thumbnail {
+  width: 70px;
+  height: 90px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: transform 0.3s ease-in-out;
+  opacity: 0.7;
+}
+
+.thumbnail:hover {
+  transform: scale(1.1);
+}
+
+.thumbnail.active {
+  opacity: 1;
+  border: 2px solid #FF5733;
+}
+
+.thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.examples-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  box-sizing: border-box;
+  background: #ffffff9f;   /* garante que o header fique visível */
+  padding-bottom: 30px;
+  width: 250px;
+  border-radius: 17px;
+}
+
+  .box-hide-btn {
+  border: none;
+  background: transparent;
+  font-size: 17px;
+  background-color: #cfcccc;
+  cursor: pointer;
+  padding: 4px 4px;
+  border-radius: 12px;
+  width:50px;
+}
+
+.reopen-floatingEX {
+  position: fixed;
+  right: 12px;
+  top: 89%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 9999; /* acima do conteúdo */
+}
+  

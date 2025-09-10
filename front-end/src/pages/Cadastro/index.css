@@ -1,0 +1,155 @@
+.register{
+    width: 100%;
+    height: 100dvh;
+    display: flex;
+}
+
+.backgroundRegister{
+    background-color: #e62c31;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+}
+
+.aboutRegister{
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+}
+
+.logoRegister{
+    width: 90%;
+    display: flex;
+    align-items: start;
+    justify-content: left;
+}
+
+.sloganRegister{
+    width: 90%;
+    padding: 20px;
+    font-family: 'Viga';
+    font-size: 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    color: white;
+    box-shadow:  -19px 0px 31px -30px rgba(0,0,0,0.75);
+
+}
+
+.sloganRegister h1{
+    margin: 0;
+}
+
+.RegisterContent{
+    position: absolute;
+    background-color: rgb(255, 255, 255, 0.3);
+    right: 0;
+    height: 100%;
+    width: 25%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: -12px 1px 31px -9px rgba(0,0,0,0.75);
+    z-index: 10;
+}
+
+.FormRegister{
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;  
+    gap: 30px;
+    width: 95%;
+}
+
+.textArea{
+    display: flex;
+    width: 80%;
+    flex-direction: column;
+    text-align: start;
+}
+
+.textArea h2{
+    font-size: 2rem;
+    color: white;
+    margin: 0;
+    font-family: 'Viga';
+}
+
+.textArea p{
+    color: white;
+    font-size: 1.1rem;
+    font-family: 'segoeui';
+    margin: 0;
+}
+
+.formArea{
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.inputTextRegister{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+.inputTextRegister input{
+    height: 25px;
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+    background-color: rgba(254, 254, 254, 0.5);
+}
+
+.inputTextRegister input::placeholder{
+    font-family: 'segoeui';
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.errorMessage{
+    font-size: 0.8rem;
+    color: white;
+    font-family: 'Segoe UI';
+}
+
+.buttonsRegister{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.buttonAcessar:hover{
+    background-color: white;
+    color: black;
+    border: 1px solid red;
+    transform: scale(1.05);
+    transition: 0.5s;
+}
+
+.buttonCriar{
+    background-color: transparent;
+    border: 1px solid red;
+    color: white;
+
+}
+
+.buttonCriar:hover{
+    background-color: red;
+    border: white 1px solid;
+    transform: scale(1.05);
+    transition: 0.5s;
+}
+
+

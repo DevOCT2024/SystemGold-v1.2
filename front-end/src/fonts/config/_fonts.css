@@ -1,0 +1,29 @@
+@font-face {
+    font-family: "Viga";
+    font-weight: normal;
+    font-style: normal;
+    src: url("/src/fonts/src/Viga-Regular.ttf") format(truetype);
+}
+
+@font-face {
+    font-family: "segoeui";
+    font-weight: normal;
+    font-style: normal;
+    src: url("../src/segoeui.ttf") format(truetype);
+}
+
+@font-face {
+    font-family: "Microsoft";
+    font-weight: normal;
+    font-style: normal;
+    src: url("../src/PHAGSPA.TTF") format(truetype);
+}
+
+@font-face {
+    font-family: "Microsoft Bold";
+    font-weight: normal;
+    font-style: normal;
+    src: url("../src/PHAGSPAB.TTF") format(truetype);
+}
+
+

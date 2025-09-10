@@ -1,0 +1,12 @@
+input{
+    height: 25px;
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+    background-color: rgba(254, 254, 254, 0.5);
+}
+
+input::placeholder{
+    font-family: 'segoeui';
+    color: rgba(0, 0, 0, 0.3);
+}

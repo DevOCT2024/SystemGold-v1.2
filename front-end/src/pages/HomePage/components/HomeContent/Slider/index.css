@@ -1,0 +1,30 @@
+.Slider {
+    width: 80%; /* Ajuste a largura conforme necessário */
+    height: 300px; /* Ajuste a altura conforme necessário */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto; /* Centraliza o slider */
+    position: relative; /* Permite o posicionamento absoluto dentro */
+}
+
+
+
+/*configurações do slide */
+
+.awesome-slider {
+    height: 100%; /* Garante que o slider preencha o contêiner */  
+}
+
+.awssld .awssld__content{
+    background-color: transparent;
+   
+}
+
+.awssld .awssld__content img{
+    object-fit: contain;
+}
+
+.awssld .awssld__bullets{
+  display: none;
+}

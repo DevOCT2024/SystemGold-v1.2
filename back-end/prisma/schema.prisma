@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model passwordreset {
+  id         String   @id @default(uuid())
+  user_id    String @unique
+  user       User     @relation(fields: [user_id], references: [id])
+  token      String   @unique
+  expiration DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+}
+
+model User {
+  id                     String   @id @default(uuid())
+  name                   String
+  email                  String   @unique
+  telefone               String
+  asaasId                String?
+  password               String
+  Adress Json?
+  Logo                   String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @default(now())
+
+  passwordreset passwordreset?
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  name      String
+  img       String
+  price     Float?
+  ean       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model exemple {
+  id          Int      @id @default(autoincrement())
+  name        String
+  qtd         Int
+  img         String   @db.LongText 
+  diagramacao String?
+}
+
+model box {
+  id        Int      @id @default(autoincrement())
+  img       String   @db.LongText 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Stamps {
+  id        Int      @id @default(autoincrement())
+  img       String   @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}

@@ -1,0 +1,89 @@
+
+.box-container {
+    position: fixed;
+    right: 1%; 
+    top: 300px; 
+    display: flex;
+    flex-direction: column;
+    gap: 20px; 
+    align-items: flex-end;
+    margin-left: 1px;
+  }
+  
+.box-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* título à esquerda, botão à direita */
+  align-items: center;
+  padding: 6px 20px; /* espaço interno */
+  box-sizing: border-box;
+}
+
+.box-header h3 {
+  margin: 10px;
+  font-size: 22px; /* ajuste conforme seu design */
+}
+
+.box {
+  width: 380px; 
+  height: 200px;
+  background-color: #ffffff; 
+  border-radius: 15px; 
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); 
+  overflow: hidden; 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  position: relative;
+}
+
+  .box-image{
+    cursor: pointer;
+  }
+  
+  .box-image:hover{
+    transform: scale(1.3);
+    transition: 0.1s;
+  }
+
+  .box-hide-btn {
+  border: none;
+  background: transparent;
+  font-size: 17px;
+  background-color: #cfcccc;
+  cursor: pointer;
+  padding: 4px 4px;
+  border-radius: 12px;
+  width:40px;
+}
+
+.box-hide-btn:hover {
+  background: #ee2828;
+}
+ 
+.reopen-floating {
+  position: fixed;  
+  right: 12px;
+  top: 80%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 9999; /* acima do conteúdo */
+}
+  
+ .reopen-btn {
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #ee2828;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  font-weight: 650;
+  min-width: 90px;
+  height: 50px;
+}
+.reopen-btn:hover {
+  filter: brightness(0.95);
+}
