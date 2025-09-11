@@ -30,10 +30,12 @@ import { BgremoveModule } from './bgremove/bgremove.module'
     ExempleModule,
     SupabaseModule,
     PaymentModule,
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'), // pasta local
-      serveRoot: '/files',                      // http://localhost:5532/files/...
-    }),
+    ServeStaticModule.forRoot(
+      { rootPath: join(process.cwd(), 'src', 'images', 'products'), serveRoot: '/files/products' },
+      { rootPath: join(process.cwd(), 'src', 'images', 'stamps'), serveRoot: '/files/stamps' },
+      { rootPath: join(process.cwd(), 'src', 'Images', 'box'), serveRoot: '/files/box' },
+      { rootPath: join(process.cwd(), 'src', 'Images', 'exemples'), serveRoot: '/files/exemples' },
+    ),
     DatabaseModule,
     StorageModule,
     ProductModule,

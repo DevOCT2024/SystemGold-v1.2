@@ -1,8 +1,9 @@
 import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { UserService } from './user.service';
-import { Prisma, User } from '@prisma/client';
+import type { Prisma, user as UserModel } from '@prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+type user = import('@prisma/client').user;
 
 @Controller('api')
 export class UserController {
@@ -10,7 +11,7 @@ export class UserController {
 
   @Post("/CreateUser")
   async createUser(
-    @Body() user: Prisma.UserCreateInput,
+    @Body() user: Prisma.userCreateInput,
   ) {
     return this.userService.createUser(user)
   }
@@ -19,7 +20,7 @@ export class UserController {
   @UseInterceptors(CacheInterceptor)
   async getUserById(
     @Param("id") id: string,
-  ): Promise<Omit<User, "password"> | null> {
+  ): Promise<Omit<user, "password"> | null> {
     const result = await this.userService.getUserById(id)
     return result
   }

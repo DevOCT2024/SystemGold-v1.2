@@ -9,13 +9,50 @@ const THUMB_WINDOW = 3;
 
 
 const ExempleImage = ({ blobImg }) => {
-  const images = Array.isArray(blobImg) ? blobImg : [];
+  // monta URL final (aceita dataURL válido, http, /files e caminhos relativos)
+  const FILES_BASE = process.env.REACT_APP_FILES_BASE || 'http://localhost:5532/files';
+  const toUrl = (val) => {
+    if (!val || typeof val !== 'string') return '';
+
+    // 1) data URL: checar se o payload É base64 mesmo; se não for, tratar como caminho
+    if (val.startsWith('data:')) {
+      const parts = val.split(',', 2);
+      const payload = parts[1] || '';
+      // base64 legítimo? (apenas A–Z a–z 0–9 + / =)
+      const isBase64 = /^[A-Za-z0-9+/=]+$/.test(payload);
+      if (isBase64) return val;
+
+      // não é base64: provavelmente prefixaram "data:" por engano em um caminho
+      const rawPath = payload.trim();
+      if (/^https?:\/\//i.test(rawPath)) return rawPath;
+      if (rawPath.startsWith('/files/')) return `${FILES_BASE}${rawPath.replace(/^\/files/, '')}`;
+      return `${FILES_BASE}/${encodeURI(rawPath)}`;
+    }
+
+    // 2) http(s) absoluto
+    if (/^https?:\/\//i.test(val)) return val;
+
+    // 3) já começa com /files
+    if (val.startsWith('/files/')) return `${FILES_BASE}${val.replace(/^\/files/, '')}`;
+
+    // 4) caminho relativo do BD: "exemples/...", "box/...", "stamps/...", "products/..."
+    return `${FILES_BASE}/${encodeURI(val)}`;
+  };
+
+  // normaliza: aceita array OU string; cada item pode ser {url}, {img} ou string
+  const sourceList = Array.isArray(blobImg) ? blobImg : (blobImg ? [blobImg] : []);
+  const images = sourceList
+    .map((item) => {
+      const raw = typeof item === 'string' ? item : (item && (item.url || item.img)) || '';
+      return toUrl(raw);
+    })
+    .filter(Boolean);
+
   const len = images.length;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [thumbStart, setThumbStart] = useState(0); // início da janela das miniaturas
-
-  const [showExamples, setShowExamples] = useState(false); // ADICIONAR BOTAO DE FECCHAR CAMPO
+  const [showExamples, setShowExamples] = useState(false); // seu toggle
 
   const goNext = () => {
     if (len < 2) return;
@@ -28,25 +65,25 @@ const ExempleImage = ({ blobImg }) => {
   };
 
   const handleThumbClick = (absoluteIndex) => {
-    if (absoluteIndex >= 0 && absoluteIndex < len) {
-      setCurrentIndex(absoluteIndex);
-    }
+    if (absoluteIndex >= 0 && absoluteIndex < len) setCurrentIndex(absoluteIndex);
   };
 
-  // Centraliza (quando possível) a miniatura da imagem principal
+  // Centraliza miniaturas (usa sua constante se existir)
   useEffect(() => {
-    if (len <= THUMB_WINDOW) {
+    const TW = typeof THUMB_WINDOW === 'number' ? THUMB_WINDOW : 6;
+    if (len <= TW) {
       setThumbStart(0);
       return;
     }
-    let desired = currentIndex - Math.floor(THUMB_WINDOW / 2);
+    let desired = currentIndex - Math.floor(TW / 2);
     if (desired < 0) desired = 0;
-    if (desired > len - THUMB_WINDOW) desired = len - THUMB_WINDOW;
+    if (desired > len - TW) desired = len - TW;
     setThumbStart(desired);
   }, [currentIndex, len]);
 
-  const visibleThumbs =
-    len <= THUMB_WINDOW ? images : images.slice(thumbStart, thumbStart + THUMB_WINDOW);
+  const TW = typeof THUMB_WINDOW === 'number' ? THUMB_WINDOW : 6;
+  const visibleThumbs = len <= TW ? images : images.slice(thumbStart, thumbStart + TW);
+
 
   return (
     <>

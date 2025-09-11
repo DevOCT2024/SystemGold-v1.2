@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import type { Prisma, user as UserModel } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { createClient } from '@supabase/supabase-js';
 import * as bcrypt from "bcrypt";
 import { SupabaseService } from 'src/supabase/supabase.service';
 import { JwtService } from '@nestjs/jwt';
+type user = import('@prisma/client').user;
 
 
 
@@ -19,7 +20,7 @@ export class UserService {
         private readonly jwtService: JwtService,
     ) { }
 
-    async createUser(data: Prisma.UserCreateInput) {
+    async createUser(data: Prisma.userCreateInput) {
 
         try {
             const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -43,7 +44,7 @@ export class UserService {
     }
 
 
-    async FindOneUserByEmail(email: string): Promise<User | null> {
+    async FindOneUserByEmail(email: string): Promise<user | null> {
         try {
 
             const user = await this.prismaService.user.findUnique({ where: { email } })
@@ -57,7 +58,7 @@ export class UserService {
 
     }
 
-    async getUserById(id: string): Promise<Omit<User, 'password'> | null> {
+    async getUserById(id: string): Promise<Omit<user, 'password'> | null> {
         try {
             const user = await this.prismaService.user.findUnique({ where: { id } })
 
@@ -75,7 +76,7 @@ export class UserService {
     }
 
 
-    async updateUserInformations(data: any, id: string): Promise<User | null> {
+    async updateUserInformations(data: any, id: string): Promise<user | null> {
         try {
             if (!id) throw new BadRequestException('id é obrigatório');
 

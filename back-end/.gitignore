@@ -6,7 +6,9 @@
 /prisma/migrations
 /prisma/seeds
 /test
-/uploads
+src/images
+
+
 
 # Logs
 logs

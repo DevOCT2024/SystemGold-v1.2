@@ -47,7 +47,7 @@ export class ProductService {
         const base = `${slug(dto.name)}-${rand}`;
         const ext = extFromMime(mime);
 
-        image_key = `products/${base}${ext}`;
+        image_key = `../images/products/${base}${ext}`;
 
         try {
           await this.storage.upload(image_key, file.buffer, mime);

@@ -18,20 +18,33 @@ export const BoxDecoration = () => {
     const [currentIndexBox, setCurrentIndexBox] = useState(0);
     const itemsPerPage = 4;
 
+    const FILES_BASE = process.env.REACT_APP_FILES_BASE || 'http://localhost:5532/files';
+    const toUrl = (val) => {
+        if (!val) return null;
+        if (typeof val !== 'string') return null;
+        if (val.startsWith('data:')) return val;               // já é base64
+        if (/^https?:\/\//i.test(val)) return val;             // já é http(s)
+        if (val.startsWith('/files/'))                         // já vem com /files
+            return `${FILES_BASE}${val.replace(/^\/files/, '')}`;
+        // valor relativo do BD: "box/15.png", "stamps/x.png", "products/y.jpg", "exemples/z.png"
+        return `${FILES_BASE}/${encodeURI(val)}`;
+    };
+
 
     useEffect(() => {
         const fetchStamps = async () => {
             try {
                 const response = await getStamps();
                 const list = Array.isArray(response) ? response : [];
+                // 🔄 antes: toDataUrl(item.img)
                 const urls = list
-                    .map((item) => (item?.img ? toDataUrl(item.img) : null))
+                    .map((item) => item?.url || toUrl(item?.img))
                     .filter(Boolean);
                 setStamps(urls);
-                console.log("stamps carregados:", urls.length);
-                if (urls[0]) console.log("stamp[0] preview len:", urls[0].length);
+                console.log('stamps carregados:', urls.length);
+                if (urls[0]) console.log('stamp[0]:', urls[0]);
             } catch (err) {
-                console.error("Erro ao carregar stamps:", err);
+                console.error('Erro ao carregar stamps:', err);
                 setStamps([]);
             }
         };
@@ -39,14 +52,16 @@ export const BoxDecoration = () => {
         const fetchBox = async () => {
             try {
                 const data = await getAllBoxs();
-                const urls = (Array.isArray(data) ? data : [])
-                    .map((item) => (item?.img ? toDataUrl(item.img) : null))
+                const list = Array.isArray(data) ? data : [];
+                // 🔄 antes: toDataUrl(item.img)
+                const urls = list
+                    .map((item) => item?.url || toUrl(item?.img))
                     .filter(Boolean);
                 setBox(urls);
-                console.log("box carregados:", urls.length);
-                if (urls[0]) console.log("box[0] preview len:", urls[0].length);
+                console.log('box carregados:', urls.length);
+                if (urls[0]) console.log('box[0]:', urls[0]);
             } catch (err) {
-                console.error("Erro ao carregar box:", err);
+                console.error('Erro ao carregar box:', err);
                 setBox([]);
             }
         };
@@ -54,6 +69,7 @@ export const BoxDecoration = () => {
         fetchStamps();
         fetchBox();
     }, []);
+
 
 
 
