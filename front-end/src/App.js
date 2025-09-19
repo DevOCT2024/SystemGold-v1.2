@@ -12,6 +12,7 @@ import { StampsProvider } from './contexts/StampsContext';
 import { BoxProvider } from './contexts/BoxContext';
 import { MyAccount } from './pages/App/MyAccount/MyAccount';
 import Plans from './pages/Plans/Plans';
+import Tabloid from './pages/App/templates/Tabloid';
 
 function App() {
   return (

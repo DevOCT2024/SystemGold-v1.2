@@ -217,7 +217,7 @@ const ExempleImage = ({ blobImg }) => {
       {/* Botão flutuante para reabrir (mesmo padrão dos Box; você ajusta a posição no CSS) */}
       {!showExamples && (
         <div className="reopen-floatingEX">
-          <button
+          <button 
             className="reopen-btn"
             onClick={() => setShowExamples(true)}
             aria-label="Mostrar Exemplos"

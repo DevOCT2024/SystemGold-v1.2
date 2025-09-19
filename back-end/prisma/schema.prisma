@@ -66,7 +66,7 @@ model stamps {
 }
 
 model user {
-  id            String         @id
+  id            String         @id @default(uuid())
   name          String
   email         String         @unique(map: "User_email_key")
   telefone      String

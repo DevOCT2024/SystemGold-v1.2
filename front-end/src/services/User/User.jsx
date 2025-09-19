@@ -76,7 +76,7 @@ export const getClubImage = async (id) => {
       if (status !== 404) {
         console.error('getClubImage falhou:', status, error?.response?.data || error?.message);
         throw error;
-      }
+      } 
       // tenta próxima rota
     }
   }

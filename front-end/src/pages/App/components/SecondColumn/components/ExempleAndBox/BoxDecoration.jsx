@@ -41,8 +41,8 @@ export const BoxDecoration = () => {
                     .map((item) => item?.url || toUrl(item?.img))
                     .filter(Boolean);
                 setStamps(urls);
-                console.log('stamps carregados:', urls.length);
-                if (urls[0]) console.log('stamp[0]:', urls[0]);
+                // console.log('stamps carregados:', urls.length);
+                // if (urls[0]) console.log('stamp[0]:', urls[0]);
             } catch (err) {
                 console.error('Erro ao carregar stamps:', err);
                 setStamps([]);
@@ -58,8 +58,8 @@ export const BoxDecoration = () => {
                     .map((item) => item?.url || toUrl(item?.img))
                     .filter(Boolean);
                 setBox(urls);
-                console.log('box carregados:', urls.length);
-                if (urls[0]) console.log('box[0]:', urls[0]);
+                // console.log('box carregados:', urls.length); AVISO DO CONSOLE SE BOX ESTÃO CARREGADAS    
+                // if (urls[0]) console.log('box[0]:', urls[0])
             } catch (err) {
                 console.error('Erro ao carregar box:', err);
                 setBox([]);

@@ -54,7 +54,7 @@ export function ProductLayer({
         onClick={(e) => handleSelect(e, product)}
         onTap={(e) => handleSelect(e, product)}
 
-        // 🔒 IMPORTANTE: não chama setState aqui!
+        //  IMPORTANTE: não chama setState aqui!
         onDragMove={(e) => {
           // Apenas redesenha a layer para suavidade
           e.target.getLayer()?.batchDraw();
@@ -104,10 +104,69 @@ export function ProductLayer({
           <Group
             key={`grp-${product.id}-empty`}
             ref={(node) => (groupRefs.current[index] = node)}
-            onClick={() => { handleTransformGroup(index); }}
-            onTap={() => { handleTransformGroup(index); }}
             id={`${product.id}-grp`}
             draggable
+
+            // Seleciona o GRUPO do preço para exibir as alças do Transformer
+            onClick={(e) => {
+              e.cancelBubble = true;
+              const grp = groupRefs.current[index];
+              if (grp) handleSelect({ target: grp });
+            }}
+            onTap={(e) => {
+              e.cancelBubble = true;
+              const grp = groupRefs.current[index];
+              if (grp) handleSelect({ target: grp });
+            }}
+
+            // Converte scale -> fontSize, corrige "pulo" e evita o "R$" ser comido
+            onTransformEnd={() => {
+              const grp = groupRefs.current[index];
+              if (!grp) return;
+
+              // bbox "visual" antes de resetar scale
+              const before = grp.getClientRect();
+
+              // fator de escala usado pelo usuário
+              const sx = Math.abs(grp.scaleX()) || 1;
+              const sy = Math.abs(grp.scaleY()) || 1;
+              const factor = Math.min(Math.max(Math.max(sx, sy), 0.5), 4);
+
+              const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+              // pega os Texts pelos IDs ORIGINAIS
+              const valueNode = grp.findOne(
+                (n) => n.getClassName?.() === 'Text' && n.id?.() === product.id + '- $'
+              );
+              const currencyNode = grp.findOne(
+                (n) => n.getClassName?.() === 'Text' && n.id?.() === product.id + '- price'
+              );
+
+              if (valueNode?.fontSize) valueNode.fontSize(clamp(valueNode.fontSize() * factor, 8, 300));
+              if (currencyNode?.fontSize) currencyNode.fontSize(clamp(currencyNode.fontSize() * factor, 6, 260));
+
+              // Re-layout horizontal: "R$" à esquerda, valor ao lado com gap
+              if (currencyNode && valueNode) {
+                const gap = 6;
+                // mantemos a margem esquerda aproximada
+                const baseX = Math.min(currencyNode.x(), valueNode.x());
+                currencyNode.x(baseX);
+                valueNode.x(currencyNode.x() + currencyNode.width() + gap);
+              }
+
+              // zera o scale p/ manter o texto nítido
+              grp.scale({ x: 1, y: 1 });
+
+              // bbox após ajustes
+              const after = grp.getClientRect();
+
+              // fixa o topo-esquerdo visual para não "pular"
+              grp.x(grp.x() + (before.x - after.x));
+              grp.y(grp.y() + (before.y - after.y));
+
+              grp.getLayer()?.batchDraw();
+              handleTransformEndAndSaveToHistory?.('price');
+            }}
           >
             <Text
               id={product.id + "- $"}

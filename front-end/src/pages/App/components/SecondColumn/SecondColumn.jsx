@@ -4,7 +4,7 @@ import { Button } from '../../../../components/button/button';
 import './index.css';
 import ExempleImage from './ExempleImages/ExempleImage';
 // import { StampsProvider } from '../../../../contexts/StampsContext'; // (não usado)
-import { StageContent } from './components/Konva/StageContent'; // ✅ mantenha só este import
+import { StageContent } from './components/Konva/StageContent';
 import ShortcutInformations from './components/ShortCutsInformations/ShortcutInformations';
 
 
@@ -99,7 +99,7 @@ const SecondColumn = ({
   setSelectedText,
   setSelectedShape,
   selectedTabloid,
-  // stageRef, // ❌ não use ref aqui; StageContent cuida disso
+
   history,
   handleNext,
   currentHistoryIndex,
@@ -119,6 +119,9 @@ const SecondColumn = ({
   registerExporter,
   pendingClickProductId,
   onClickHandled,
+  stageSize,
+  backgroundUrl,
+  bgUrl,
 }) => {
   return (
     <main className="secondColumnApp">
@@ -181,6 +184,10 @@ const SecondColumn = ({
       />
 
       <StageContent
+        stageSize={stageSize}
+        bgUrl={bgUrl}
+        
+        backgroundUrl={backgroundUrl || null}
         onClearCurrentPage={onClearCurrentPage}
         setStageQuantity={setStageQuantity}
         stageQuantity={stageQuantity}

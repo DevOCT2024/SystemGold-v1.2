@@ -1,6 +1,7 @@
 import { Button } from "../../../../components/button/button";
 import Input from "../../../../components/inputs/Input";
 import { Select } from "../../../../components/select/Select";
+import React from 'react';
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
@@ -13,11 +14,16 @@ import { Form, Formik } from "formik";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
 import { registerNewProduct } from "../../../../services/Products/Products";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import { selectedOption } from "./components/SelectOptions";
 import { SelectTabloid } from "./components/SelectTabloid";
-import { useParams } from "react-router-dom";
+import ChooseLayoutModal from '../../templates/EscolherLayoutModal';
+import { useParams } from 'react-router-dom';
+import { useStageConfig } from "../SecondColumn/components/Konva/StageConfigContext.jsx";
+import { StageConfigProvider } from "../SecondColumn/components/Konva/StageConfigContext.jsx";
+import { height, width } from "@fortawesome/free-regular-svg-icons/faAddressBook";
+// src\pages\App\components\FirstColumn\FirstColumn.jsx
 
 const FirstColumn = ({
     setModalRegisterProduct,
@@ -49,7 +55,10 @@ const FirstColumn = ({
     handleSelectProduct,
     handleRemoveProduct,
     products = [],
+    onLayoutPicked,
 }) => {
+
+    const [open, setOpen] = React.useState(false);
 
 
     const { id } = useParams();
@@ -73,15 +82,15 @@ const FirstColumn = ({
     const [loading, setLoading] = useState(false);
 
 
+    //   NAO ESTA FUNCIONANDO
+    // useEffect(() => {
+    //     const fetchLogo = async () => {
+    //         const response = await axios.get(`http://localhost:5532/api/ClubImage/${id}`);
+    //         setLogo(response.data)
+    //     }
+    //     fetchLogo()
 
-    useEffect(() => {
-        const fetchLogo = async () => {
-            const response = await axios.get(`http://localhost:5532/api/ClubImage/${id}`);
-            setLogo(response.data)
-        }
-        fetchLogo()
-
-    }, [id])
+    // }, [id])
 
     const loadKonvaImage = (src) =>
         new Promise((resolve, reject) => {
@@ -218,12 +227,62 @@ const FirstColumn = ({
         }
     };
 
+    const [showModal, setShowModal] = React.useState(false);
+    const API = "http://localhost:5532";
+
+    const { setStageSize, setBgUrl } = useStageConfig();
+
+    async function handleChooseVariant(variant) {
+        try {
+            // Garantimos baseKey e format. Se não vier no objeto, tenta extrair do name "TPL — FORMAT"
+            let baseKey = variant.baseKey;
+            let format = variant.format;
+
+            if (!baseKey && typeof variant.name === "string") {
+                // se seu name for "Tabloide X — FEED"
+                const m = variant.name.match(/—\s*([A-Z_]+)/);
+                format = format || (m ? m[1] : undefined);
+            }
+
+            if (!baseKey || !format) {
+                // fallback total (usa o que veio no card), ainda assim funciona
+                const imageKeyFallback = String(variant.originalImageKey ?? variant.imageKey ?? "").replace(/^\/+/, "");
+                const urlFallback = `${API}/files/${imageKeyFallback}?v=${Date.now()}`;
+                window.dispatchEvent(new CustomEvent("SG_SET_BG", { detail: { url: urlFallback } }));
+                console.warn("[FirstColumn] fallback (sem baseKey/format):", urlFallback);
+                setShowModal(false);
+                return;
+            }
+
+            // 1) pede ao back o variant exato desse formato
+            const res = await fetch(`${API}/templates/${baseKey}/variant?format=${format}`);
+            if (!res.ok) throw new Error(`Falha ao resolver variant: HTTP ${res.status}`);
+            const data = await res.json(); // { imageKey, widthPx, heightPx, ... }
+
+            // 2) monta a URL do arquivo estático
+            const imageKey = String(data.imageKey || "").replace(/^\/+/, "");
+            const url = `${API}/files/${imageKey}?v=${Date.now()}`; // cache-busting p/ forçar reload
+
+            // 3) dispara o evento que o StageContent já escuta
+            window.dispatchEvent(new CustomEvent("SG_SET_BG", { detail: { url } }));
+
+            // (Opcional) se você quiser já ajustar o tamanho do Konva pelo variant do back:
+            // window.dispatchEvent(new CustomEvent("SG_SET_SIZE", { detail: { width: data.widthPx, height: data.heightPx } }));
+
+            setShowModal(false);
+            console.log("[FirstColumn] SG_SET_BG ->", { baseKey, format, url });
+        } catch (err) {
+            console.error("Erro ao escolher layout:", err);
+        }
+    }
+
 
     return (
-        <main className="firstColumnApp">
+        <main className="aplication">
 
             <h1 style={{ margin: 0, color: "rgba(124, 17, 20, 0.404)" }}>É muito fácil, vamos lá!</h1>
 
+            <br></br>
             <p className="steps" style={{ marginBottom: 0 }}>1ºpasso</p>
 
             <section className="uploadYourData">
@@ -348,33 +407,49 @@ const FirstColumn = ({
                     </Formik>
                 }></Modal>
             )}
-
+            <br></br>
             <p className="steps" >2ºpasso</p>
+            <br></br>
 
             <section className="layoutOptions">
 
                 <div className="selectandChoyceLayout">
-
-
                     <h3 style={{ margin: 0 }}>Qual formato de seu tablóide/Post?</h3>
 
                     <div className="selectAndButton">
-
                         <div className="selectFormatTabloid">
                             <Select
                                 FirstOption={"Escolha seu Formato"}
                                 options={SelectTabloid}
                                 onChange={(e) => { setSelectedTabloid(JSON.parse(e.target.value)); }}
-
                                 name="selectTabloid"
                             />
                         </div>
 
-                        <Button>Escolher Layout</Button>
+                        <aside style={{ padding: 16, borderRight: "1px solid #e5e7eb" }}>
+                            {/* botão para abrir a modal */}
+                            <div style={{ marginTop: 12, marginRight: -19 }}>
+                                <button
+                                    type="button"
+                                    style={{ width: 200 }}
+                                    disabled={!selectedTabloid}                 //só habilita após escolher formato
+                                    onClick={() => setShowModal(true)}
+                                >
+                                    Escolher Layout
+                                </button>
+                            </div>
 
+                            {/* Modal (em portal) */}
+                            <ChooseLayoutModal
+                                open={showModal}
+                                onClose={() => setShowModal(false)}
+                                onChooseVariant={handleChooseVariant}
+                                selectedFormat={selectedTabloid?.format}      //passa o formato para o modal
+                            />
+                        </aside>
                     </div>
-
                 </div>
+
 
                 <div className="division">
                     <hr />
@@ -412,8 +487,9 @@ const FirstColumn = ({
 
 
             </section>
-
+            <br></br>
             <p className="steps" >3ºpasso</p>
+            <br></br>
 
             <section className="addProductContent">
 
@@ -458,7 +534,7 @@ const FirstColumn = ({
 
                             {visibleModalIndex === index && (
                                 <div className="modal">
-                                    <div className="modal-content" style={{ width: '50%', height: "55%" }}>
+                                    <div className="modal-content" style={{ width: '50%', height: "55%", position: "absolute" }}>
                                         <Button style={{ position: "absolute", top: '5px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', left: '5px', borderRadius: '50%', padding: '0' }} onClick={() => setVisibleModalIndex(null)}><p>x</p></Button>
                                         <div className="productSuggestions">
 

@@ -14,8 +14,8 @@ import { useBox } from "../../contexts/BoxContext";
 import NavBar from "../HomePage/components/NavBar/NavBar";
 import { UserContext } from "../../contexts/UserContext";
 import { Stage, Layer } from 'react-konva';
-
-
+import React from 'react';
+import { StageConfigProvider } from "./components/SecondColumn/components/Konva/StageConfigContext.jsx";
 
 const Aplication = () => {
     const [exporter, setExporter] = useState(null);
@@ -474,7 +474,7 @@ const Aplication = () => {
 
                 // expõe para debug no console
                 window.__blobImg = urls;
-                console.log("[exemples] qtd:", urls.length, "amostra:", urls[0]?.slice(0, 40));
+                // console.log("[exemples] qtd:", urls.length, "amostra:", urls[0]?.slice(0, 40));
             } catch (err) {
                 console.error("Erro ao carregar exemples:", err);
                 if (!alive) return;
@@ -1375,7 +1375,7 @@ const Aplication = () => {
     };
 
     const handleTransformEndAndSaveToHistory = (type) => {
-        console.log('aqui')
+        
         const transformHandlers = {
             shape: () => {
                 const newShapes = shapes.map((shape) => {
@@ -1597,9 +1597,39 @@ const Aplication = () => {
         stageRef?.current?.batchDraw?.();
     };
 
+    // TABLOID SECTION UTILIZANDO SOMENTE BOTAO ESCOLHER LAYOUT 
 
+    const [stageSize, setStageSize] = React.useState({ width: 1080, height: 1440 });
+    const [backgroundUrl, setBackgroundUrl] = React.useState(null);
 
+    // quando o usuário escolhe um "variant" no modal
+    // NÃO ESTÁ FUNCIONANDO, MEXER MAIS TARDE NISSO
+    
+    // const onApplyLayoutVariant = (variant) => {
+    //     // se você servir via backend/CDN, ajuste essa URL
+    //     const url = `/${variant.imageKey}`;
+    //     setBackgroundUrl(url);
+    //     setStageSize({ width: variant.widthPx, height: variant.heightPx });
+    // };
 
+    // quando escolher formato manual (ex.: via <select>)
+    const onApplyManualFormat = ({ width, height }) => {
+        setStageSize({ width, height });
+    };
+
+    const [pickedLayout, setPickedLayout] = useState({
+        bgUrl: null,
+        width: 600,
+        height: 800,
+    });
+
+    function handleLayoutPicked({ url, widthPx, heightPx }) {
+        setPickedLayout({
+            bgUrl: url,
+            width: Number(widthPx) || 600,
+            height: Number(heightPx) || 800,
+        });
+    }
 
 
     return (
@@ -1753,6 +1783,7 @@ const Aplication = () => {
                 />
             </main>
         </div>
+
     );
 
 }

@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  z-index: 1000;  
+  z-index: 10;  
 }
 
 .carousel-main {
@@ -133,7 +133,7 @@
 
 .examples-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
   padding: 6px 12px;
   box-sizing: border-box;
@@ -162,6 +162,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 9999; /* acima do conteúdo */
+  z-index: 50; /* acima do conteúdo */
 }
   

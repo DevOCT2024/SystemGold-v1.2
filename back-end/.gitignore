@@ -7,7 +7,8 @@
 /prisma/seeds
 /test
 src/images
-
+src/config
+src/common
 
 
 # Logs

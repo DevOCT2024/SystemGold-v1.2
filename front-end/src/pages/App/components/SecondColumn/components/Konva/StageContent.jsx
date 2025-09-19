@@ -1,17 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Layer,
-    Rect,
-    Circle,
     Stage,
-    Text,
-    Transformer,
-    Line,
-    Image,
-    Star,
-    Path,
+    Layer,
     Group,
-} from "react-konva";
+    Rect,
+    Text,
+    Line,
+    Transformer,
+    Image as KonvaImage, Circle, Star, Path
+} from 'react-konva';
 
 import iconWhats from "../../../../../../sources/icons konva/whats.png";
 import iconTel from "../../../../../../sources/icons konva/tel.png";
@@ -22,6 +19,9 @@ import { getClubImage } from "../../../../../../services/User/User";
 import { Button } from "../../../../../../components/button/button";
 import { ArrowLeft, ArrowRight, Plus } from "lucide-react";
 import { handleClearCurrentPage } from "../../../../aplication"
+import useImage from 'use-image';
+import { useStageConfig } from "./StageConfigContext";
+
 
 import { ProductLayer } from "./ProductLayer";
 import { ShapesLayer } from "./ShapesLayer";
@@ -73,25 +73,14 @@ export const StageContent = ({
     pendingClickProductId,          // string/number do produto a ser “clicado”
     onClickHandled,
     onClearCurrentPage,
+    stageSize,
+    bgUrl,
+
+    backgroundUrl,
 }) => {
 
-    // Cole no topo do arquivo (FirstColumn.jsx e StageContent.jsx)
-    const getSafeJSON = (key, fallback = null) => {
-        try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return fallback;
-            const s = String(raw).trim();
+    const trRef = React.useRef(null); // ALTERAR TAMANHO DO TEXTO PRICE
 
-            // Evita tentar parsear "[object Object]" e afins
-            if (!/^[\[{"]|^(true|false|null|-?\d)/.test(s)) return fallback;
-
-            return JSON.parse(s);
-        } catch {
-            // valor corrompido → remove e volta fallback
-            localStorage.removeItem(key);
-            return fallback;
-        }
-    };
 
     const { id } = useParams();
     const [logo, setLogo] = useState(null);
@@ -281,237 +270,292 @@ export const StageContent = ({
         };
     }, [pendingClickProductId, onClickHandled]);
 
+    // --> TABLOIDES SECTION <--
+    const [bgUrlState, setBgUrlState] = useState(null);
+    const containerRef = useRef(null);
+    const [bgFamily, setBgFamily] = useState(null);
+    // escuta o evento vindo do FirstColumn <-
+    useEffect(() => {
+        const onSetBg = (e) => {
+            const url = e?.detail?.url ?? null;
+            setBgUrlState(url);
+            console.log("[StageContent] BG set via event:", url);
+        };
+        window.addEventListener("SG_SET_BG", onSetBg);
+        return () => window.removeEventListener("SG_SET_BG", onSetBg);
+    }, []);
+
+    const [bg, bgStatus] = useImage(bgUrlState ?? "", "anonymous");
+
+
+
     return (
-        <div
-            className="konva-content"
-            style={{ position: "relative", marginRight: "40px", marginTop: "15%" }}
-        >
-            {editingTextIndex !== null && (
-                <input
-                    className="changeText"
-                    type="text"
-                    value={tempTextValue}
-                    onChange={handleTextChange}
-                    onBlur={saveTextChange}
-                    autoFocus
-                    style={{
-                        position: "absolute",
-                        top: inputPosition.y,
-                        left: inputPosition.x,
-                        width: 200,
-                        border: 0,
-                        fontSize: "22px",
-                        padding: "4px",
-                        background: "#fff",
-                        outline: "none",
-                        borderRadius: 0,
-                        zIndex: 1000,
-                    }}
-                />
-            )}
+        <div ref={containerRef}>
 
-            <Stage
-                className="Stage"
-                ref={stageRef}
-                style={{ border: "1px solid", backgroundColor: "white" }}
-                width={selectedTabloid?.width ?? 600}
-                height={selectedTabloid?.height ?? 800}
-                scaleX={konvaScale}
-                scaleY={konvaScale}
-                x={positionKonva.x}
-                y={positionKonva.y}
-                onWheel={handleWheel}
-                onMouseDown={(e) => {
-                    if (e.target === e.target.getStage()) {
-                        setSelectedShape(null);
-                        setSelectedText(null);
-                        handleDeselect();
-                    }
-                }}
+            <div
+                className="konva-content"
+                style={{ position: "relative", marginRight: "40px", marginTop: "30%" }}
             >
-                <Layer>
-                    {/* Guias */}
-                    {!!guides?.vertical && (
-                        <Line
-                            points={[guides.vertical, 0, guides.vertical, window.innerHeight]}
-                            stroke="red"
-                            strokeWidth={1}
-                            dash={[4, 6]}
-                        />
-                    )}
-                    {!!guides?.horizontal && (
-                        <Line
-                            points={[0, guides.horizontal, window.innerWidth, guides.horizontal]}
-                            stroke="red"
-                            strokeWidth={1}
-                            dash={[4, 6]}
-                        />
-                    )}
-                </Layer>
-
-                <Layer id="shapesLayer">
-                    {currentStage?.shapes?.map((shape) => (
-                        <ShapesLayer
-                            key={shape.id}
-                            shape={shape}
-                            handleSelect={handleSelect}
-                            handleDragMove={handleDragMove}
-                            handleDragEnd={handleDragEnd}
-                            shapesRefs={shapesRefs}
-                            handleTransformEndAndSaveToHistory={
-                                handleTransformEndAndSaveToHistory
-                            }
-                            handleMouseEnter={handleMouseEnter}
-                            handleMouseLeave={handleMouseLeave}
-                        />
-                    ))}
-                </Layer>
-
-                <Layer id="copiesLayer">
-                    {currentStage?.copies?.map((copy) => (
-                        <CopiesLayer
-                            key={copy.id}
-                            copy={copy}
-                            handleSelect={handleSelect}
-                            handleDragMove={handleDragMove}
-                            handleDragEnd={handleDragEnd}
-                            shapesRefs={shapesRefs}
-                            handleTransformEndAndSaveToHistory={
-                                handleTransformEndAndSaveToHistory
-                            }
-                            handleMouseEnter={handleMouseEnter}
-                            handleMouseLeave={handleMouseLeave}
-                        />
-                    ))}
-                </Layer>
-
-                <Layer>
-                    {currentStage?.boxData?.map((box) => (
-                        <BoxDataLayer
-                            key={box.id}
-                            box={box}
-                            handleSelect={handleSelect}
-                            shapesRefs={shapesRefs}
-                            handleMouseEnter={handleMouseEnter}
-                            handleMouseLeave={handleMouseLeave}
-                        />
-                    ))}
-                </Layer>
-
-                <Layer id="productLayer" ref={productLayerRef}>
-                    {currentStage?.products?.map((product, index) => (
-                        <ProductLayer
-                            key={product.id}
-                            product={product}
-                            index={index}
-                            handleSelect={handleSelect}
-                            handleDragMove={handleDragMove}
-                            handleDragEnd={handleDragEnd}
-                            shapesRefs={shapesRefs}
-                            handleTransformEndAndSaveToHistory={
-                                handleTransformEndAndSaveToHistory
-                            }
-                            handleMouseEnter={handleMouseEnter}
-                            handleMouseLeave={handleMouseLeave}
-                            enableTextEditing={enableTextEditing}
-                            groupRefs={groupRefs}
-                            handleTransformGroup={handleTransformGroup}
-                            logo={logo}
-                        />
-                    ))}
-                </Layer>
-
-                <Layer id="textLayer">
-                    {currentStage?.texts?.map((text) => (
-                        <TextsLayer
-                            key={text.id}
-                            text={text}
-                            handleSelect={handleSelect}
-                            handleDragEnd={handleDragEnd}
-                            enableTextEditing={enableTextEditing}
-                            shapesRefs={shapesRefs}
-                        />
-                    ))}
-                </Layer>
-
-                <Layer>
-                    {currentStage?.hasValidateDate && (
-                        <ValidadeDateLayer
-                            handleSelect={handleSelect}
-                            formatedDateInitial={currentStage.formatedDateInitial}
-                            formatedDateFinal={currentStage.formatedDateFinal}
-                        />
-                    )}
-                </Layer>
-
-                <Layer>
-                    <InformationsLayer
-                        informations={informations}
-                        adress={adress}
-                        handleSelect={handleSelect}
-                        logoTel={logoTel}
-                        logoWhats={logoWhats}
+                {/* ⬅️ Input HTML fica FORA da Stage (sobreposição) */}
+                {editingTextIndex !== null && (
+                    <input
+                        className="changeText"
+                        type="text"
+                        value={tempTextValue}
+                        onChange={handleTextChange}
+                        onBlur={saveTextChange}
+                        autoFocus
+                        style={{
+                            position: "absolute",
+                            top: inputPosition.y,
+                            left: inputPosition.x,
+                            width: 200,
+                            border: 0,
+                            fontSize: "22px",
+                            padding: "4px",
+                            background: "#fff",
+                            outline: "none",
+                            borderRadius: 0,
+                            zIndex: 1000,
+                        }}
                     />
-                </Layer>
+                )}
 
-                <Layer>
-                    {currentStage?.stampsKonva?.map((stamp) => (
-                        <StampsLayer
-                            key={stamp.id}
-                            stamp={stamp}
-                            handleSelect={handleSelect}
-                            shapesRefs={shapesRefs}
-                        />
-                    ))}
-
-                    {selectedShape && (
-                        <Transformer
-                            ref={transformerRef}
-                            rotateEnabled={true}
-                            enabledAnchors={[
-                                "top-left",
-                                "top-right",
-                                "top-center",
-                                "bottom-left",
-                                "bottom-right",
-                                "bottom-center",
-                                "middle-left",
-                                "middle-right",
-                            ]}
-                            boundBoxFunc={(oldBox, newBox) => {
-                                if (newBox.width < 20 || newBox.height < 20) {
-                                    return oldBox;
-                                }
-                                return newBox;
-                            }}
-                        />
-                    )}
-
-                    {selectedElements.length > 0 && (
-                        <Transformer
-                            ref={transformerRef}
-                            boundBoxFunc={(oldBox, newBox) => {
-                                if (newBox.width < 20 || newBox.height < 20) {
-                                    return oldBox;
-                                }
-                                return newBox;
-                            }}
-                        />
-                    )}
-                </Layer>
-            </Stage>
-
-
-
-            <div style={{ display: "flex", gap: "10px" }}>
-
-                <Button
-                    onClick={onClearCurrentPage}
-                    style={{
-                        width: "20%",
-                        marginTop: "10px",
+                {/* ✅ ÚNICA Stage no tamanho EXATO do select (sem scale extra) */}
+                <Stage
+                    className="Stage"
+                    ref={stageRef}
+                    style={{ border: "1px solid", backgroundColor: "white" }}
+                    width={selectedTabloid?.width ?? 600}
+                    height={selectedTabloid?.height ?? 800}
+                    scaleX={konvaScale}   // zoom seu (se quiser 1:1, mantenha em 1)
+                    scaleY={konvaScale}
+                    x={positionKonva.x}
+                    y={positionKonva.y}
+                    onWheel={handleWheel}
+                    onMouseDown={(e) => {
+                        if (e.target === e.target.getStage()) {
+                            setSelectedShape(null);
+                            setSelectedText(null);
+                            handleDeselect();
+                        }
                     }}
                 >
+                    {/* 🔒 BACKGROUND TRAVADO como primeira layer */}
+                    <Layer listening={false}>
+                        {bg && (() => {
+                            const stageW = selectedTabloid?.width ?? 600;   // largura atual do canvas
+                            const stageH = selectedTabloid?.height ?? 800;  // altura atual do canvas
+
+                            const imgW = bg.width;   // tamanho real da imagem carregada
+                            const imgH = bg.height;
+
+                            // object-fit: 'cover' → preenche tudo sem distorcer (pode cortar bordas).
+                            // se quiser ver a imagem inteira (com faixas), troque para 'contain'
+                            const mode = 'cover';
+                            const scale = mode === 'cover'
+                                ? Math.max(stageW / imgW, stageH / imgH)
+                                : Math.min(stageW / imgW, stageH / imgH);
+
+                            const drawW = imgW * scale;
+                            const drawH = imgH * scale;
+                            const offsetX = (stageW - drawW) / 2;
+                            const offsetY = (stageH - drawH) / 2;
+
+                            return (
+                                <KonvaImage
+                                    image={bg}
+                                    x={offsetX}
+                                    y={offsetY}
+                                    width={drawW}
+                                    height={drawH}
+                                    listening={false}
+                                />
+                            );
+                        })()}
+                    </Layer>
+
+                    {/* Guias */}
+                    <Layer>
+                        {!!guides?.vertical && (
+                            <Line
+                                points={[guides.vertical, 0, guides.vertical, window.innerHeight]}
+                                stroke="red"
+                                strokeWidth={1}
+                                dash={[4, 6]}
+                            />
+                        )}
+                        {!!guides?.horizontal && (
+                            <Line
+                                points={[0, guides.horizontal, window.innerWidth, guides.horizontal]}
+                                stroke="red"
+                                strokeWidth={1}
+                                dash={[4, 6]}
+                            />
+                        )}
+                    </Layer>
+
+                    {/* Suas layers inalteradas */}
+                    <Layer id="shapesLayer">
+                        {currentStage?.shapes?.map((shape) => (
+                            <ShapesLayer
+                                key={shape.id}
+                                shape={shape}
+                                handleSelect={handleSelect}
+                                handleDragMove={handleDragMove}
+                                handleDragEnd={handleDragEnd}
+                                shapesRefs={shapesRefs}
+                                handleTransformEndAndSaveToHistory={handleTransformEndAndSaveToHistory}
+                                handleMouseEnter={handleMouseEnter}
+                                handleMouseLeave={handleMouseLeave}
+                            />
+                        ))}
+                    </Layer>
+
+                    <Layer id="copiesLayer">
+                        {currentStage?.copies?.map((copy) => (
+                            <CopiesLayer
+                                key={copy.id}
+                                copy={copy}
+                                handleSelect={handleSelect}
+                                handleDragMove={handleDragMove}
+                                handleDragEnd={handleDragEnd}
+                                shapesRefs={shapesRefs}
+                                handleTransformEndAndSaveToHistory={handleTransformEndAndSaveToHistory}
+                                handleMouseEnter={handleMouseEnter}
+                                handleMouseLeave={handleMouseLeave}
+                            />
+                        ))}
+                    </Layer>
+
+                    <Layer>
+                        {currentStage?.boxData?.map((box) => (
+                            <BoxDataLayer
+                                key={box.id}
+                                box={box}
+                                handleSelect={handleSelect}
+                                shapesRefs={shapesRefs}
+                                handleMouseEnter={handleMouseEnter}
+                                handleMouseLeave={handleMouseLeave}
+                            />
+                        ))}
+                    </Layer>
+
+                    <Layer id="productLayer" ref={productLayerRef} x={-400}
+                        y={-400}>
+                        {currentStage?.products?.map((product, index) => (
+                            <ProductLayer
+                                key={product.id}
+                                product={product}
+                                index={index}
+                                handleSelect={handleSelect}
+                                handleDragMove={handleDragMove}
+                                handleDragEnd={handleDragEnd}
+                                shapesRefs={shapesRefs}
+                                handleTransformEndAndSaveToHistory={handleTransformEndAndSaveToHistory}
+                                handleMouseEnter={handleMouseEnter}
+                                handleMouseLeave={handleMouseLeave}
+                                enableTextEditing={enableTextEditing}
+                                groupRefs={groupRefs}
+                                handleTransformGroup={handleTransformGroup}
+                                logo={logo}
+                                x={positionKonva.x}
+                                y={positionKonva.y}
+
+                            />
+
+                        ))}
+                        <Transformer
+                            ref={trRef}
+                            rotateEnabled={false}
+                            enabledAnchors={[
+                                'top-left', 'top-right', 'bottom-left', 'bottom-right',
+                                'middle-left', 'middle-right', 'top-center', 'bottom-center'
+                            ]}
+                        />
+                    </Layer>
+
+                    <Layer id="textLayer">
+                        {currentStage?.texts?.map((text) => (
+                            <TextsLayer
+                                key={text.id}
+                                text={text}
+                                handleSelect={handleSelect}
+                                handleDragEnd={handleDragEnd}
+                                enableTextEditing={enableTextEditing}
+                                shapesRefs={shapesRefs}
+                            />
+                        ))}
+                    </Layer>
+
+                    <Layer>
+                        {currentStage?.hasValidateDate && (
+                            <ValidadeDateLayer
+                                handleSelect={handleSelect}
+                                formatedDateInitial={currentStage.formatedDateInitial}
+                                formatedDateFinal={currentStage.formatedDateFinal}
+                            />
+                        )}
+                    </Layer>
+
+                    <Layer>
+                        <InformationsLayer
+                            informations={informations}
+                            adress={adress}
+                            handleSelect={handleSelect}
+                            logoTel={logoTel}
+                            logoWhats={logoWhats}
+                        />
+                    </Layer>
+
+                    <Layer>
+                        {currentStage?.stampsKonva?.map((stamp) => (
+                            <StampsLayer
+                                key={stamp.id}
+                                stamp={stamp}
+                                handleSelect={handleSelect}
+                                shapesRefs={shapesRefs}
+                            />
+                        ))}
+
+                        {selectedShape && (
+                            <Transformer
+                                ref={transformerRef}
+                                rotateEnabled={true}
+                                enabledAnchors={[
+                                    "top-left",
+                                    "top-right",
+                                    "top-center",
+                                    "bottom-left",
+                                    "bottom-right",
+                                    "bottom-center",
+                                    "middle-left",
+                                    "middle-right",
+                                ]}
+                                boundBoxFunc={(oldBox, newBox) => {
+                                    if (newBox.width < 20 || newBox.height < 20) return oldBox;
+                                    return newBox;
+                                }}
+                            />
+                        )}
+
+                        {selectedElements.length > 0 && (
+                            <Transformer
+                                ref={transformerRef}
+                                boundBoxFunc={(oldBox, newBox) => {
+                                    if (newBox.width < 20 || newBox.height < 20) return oldBox;
+                                    return newBox;
+                                }}
+                            />
+                        )}
+                    </Layer>
+                </Stage>
+            </div>
+
+            {/* Botões fora da Stage */}
+            <div style={{ display: "flex", gap: "10px" }}>
+                {/* ... seus botões exatamente como estavam ... */}
+                <Button onClick={onClearCurrentPage} style={{ width: "20%", marginTop: "10px" }}>
                     Limpar Página
                 </Button>
 
@@ -520,20 +564,14 @@ export const StageContent = ({
                         setKonvaScale(1);
                         setPositionKonva({ x: 0, y: 0 });
                     }}
-                    style={{
-                        width: "20%",
-                        marginTop: "10px",
-                    }}
+                    style={{ width: "20%", marginTop: "10px" }}
                 >
                     Voltar Padrão
                 </Button>
 
                 {stageQuantity.length > 1 && (
                     <Button
-                        style={{
-                            width: "10%",
-                            marginTop: "10px",
-                        }}
+                        style={{ width: "10%", marginTop: "10px" }}
                         onClick={() => prevStage()}
                         disabled={currentStage?.id === 1}
                     >
@@ -545,20 +583,14 @@ export const StageContent = ({
                     onClick={() => {
                         addNewStage();
                     }}
-                    style={{
-                        width: "10%",
-                        marginTop: "10px",
-                    }}
+                    style={{ width: "10%", marginTop: "10px" }}
                 >
                     <Plus />
                 </Button>
 
                 {stageQuantity.length > 1 && (
                     <Button
-                        style={{
-                            width: "10%",
-                            marginTop: "10px",
-                        }}
+                        style={{ width: "10%", marginTop: "10px" }}
                         onClick={() => nextStage()}
                         disabled={currentStage?.id === stageQuantity.length}
                     >
@@ -568,17 +600,16 @@ export const StageContent = ({
 
                 {stageQuantity.length > 1 && (
                     <Button
-                        style={{
-                            width: "10%",
-                            marginTop: "10px",
-                        }}
+                        style={{ width: "10%", marginTop: "10px" }}
                         onClick={() => deleteKonvaStage(currentStage?.id)}
                         disabled={currentStage?.id === 1}
                     >
-                        Apagar
+                        Apagar Página
                     </Button>
                 )}
             </div>
         </div>
     );
+
+
 };
