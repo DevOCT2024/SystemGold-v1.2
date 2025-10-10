@@ -24,28 +24,27 @@ import { TemplatesModule } from './templates/templates.module';
   imports: [UserModule, PrismaModule, AuthModule,
     CacheModule.register({
       isGlobal: true,
-      ttl: 600000 // tempo em milisegundos para expirar a cache
+      ttl: 60000 // tempo em milisegundos para expirar a cache - ESTAVA 600000 - 10MIN
     }),
     ProductModule,
     StampsModule,
     BoxModule,
     ExempleModule,
-    SupabaseModule,
+    SupabaseModule,   
     PaymentModule,
-    ServeStaticModule.forRoot( 
-      { rootPath: join(process.cwd(), 'src', 'images', 'products'), serveRoot: '/files/products' },
-      { rootPath: join(process.cwd(), 'src', 'images', 'stamps'), serveRoot: '/files/stamps' },
-      { rootPath: join(process.cwd(), 'src', 'Images', 'box'), serveRoot: '/files/box' },
-      { rootPath: join(process.cwd(), 'src', 'Images', 'exemples'), serveRoot: '/files/exemples' },
-      { rootPath: join(process.cwd(), 'src', 'images', 'tabloides'), serveRoot: '/files/tabloides/' },
-    ),
-
     DatabaseModule,
     StorageModule,
     ProductModule,
     ConfigModule.forRoot({ isGlobal: true }),
     BgremoveModule,
     TemplatesModule,
+    ServeStaticModule.forRoot(
+      { rootPath: join(process.cwd(), 'src', 'images', 'products'), serveRoot: '/files/products' },
+      { rootPath: join(process.cwd(), 'src', 'images', 'stamps'), serveRoot: '/files/stamps' },
+      { rootPath: join(process.cwd(), 'src', 'Images', 'box'), serveRoot: '/files/box' },
+      { rootPath: join(process.cwd(), 'src', 'Images', 'exemples'), serveRoot: '/files/exemples' },
+      { rootPath: join(process.cwd(), 'src', 'images', 'tabloides'), serveRoot: '/files/tabloides/' },
+    ),
   ],
   controllers: [],
   providers: [],

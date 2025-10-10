@@ -31,6 +31,7 @@ import { BoxDataLayer } from "./BoxDataLayer";
 import { ValidadeDateLayer } from "./ValidateDateLayer";
 import { InformationsLayer } from "./InformationsLayer";
 import { StampsLayer } from "./StampsLayer";
+import { useFormState } from "react-dom";
 
 export const StageContent = ({
     // ===== props já existentes =====
@@ -81,7 +82,7 @@ export const StageContent = ({
 
     const trRef = React.useRef(null); // ALTERAR TAMANHO DO TEXTO PRICE
 
-
+    const [exporting, setExporting] = useState(false);
     const { id } = useParams();
     const [logo, setLogo] = useState(null);
     const { stampsKonva } = useStamps();
@@ -92,11 +93,10 @@ export const StageContent = ({
     // stage atual
     const currentStage = stageQuantity.find((stage) => stage?.id === stageId);
 
-    // refs do Konva (UMA vez neste arquivo)
+   
     const stageRef = useRef(null);
     const productLayerRef = useRef(null);
-    // ===== Helpers de exportação =====
-    // ===== Helpers de exportação (NÃO mexem na escala do stage) =====
+   
     const downloadDataUrl = (dataURL, filename = 'Tabloide.png') => {
         const link = document.createElement('a');
         link.href = dataURL;
@@ -109,8 +109,8 @@ export const StageContent = ({
     const exportPNG = ({
         filename = 'Tabloide.png',
         pixelRatio = 3,             // qualidade (3x). Aumente se quiser ainda mais
-        mimeType = 'image/png',     // pode usar 'image/jpeg'
-        quality,                    // 0..1 (só para jpeg/webp)
+        mimeType = 'image/png',     
+        quality,                    
     } = {}) => {
         const stage = stageRef.current;
         if (!stage) return null;
@@ -134,7 +134,7 @@ export const StageContent = ({
                 },
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        
     }, [registerExporter]);
 
 
@@ -159,14 +159,11 @@ export const StageContent = ({
         });
     };
 
-    // (REMOVIDO) — havia um StageContent “dentro” do arquivo com outro stageRef; isso causava conflitos
-
     const [logoWhats, setLogoWhats] = useState(null);
     const [logoTel, setLogoTel] = useState(null);
     const [textSize, setTextSize] = useState({ width: 0, height: 0 });
     const textRefAdress = useRef();
 
-    // cuidado: JSON.parse pode quebrar; se preferir, proteja com try/catch
     const informations = user?.Adress ?? null;
 
     useEffect(() => {
@@ -285,9 +282,75 @@ export const StageContent = ({
         return () => window.removeEventListener("SG_SET_BG", onSetBg);
     }, []);
 
-    const [bg, bgStatus] = useImage(bgUrlState ?? "", "anonymous");
+    // captura o evento global SG_SET_BG e salva na página ATUAL                                    
+    useEffect(() => {
+        const onSetBg = (e) => {
+            const src = e?.detail?.src || e?.detail?.url; // aceita os dois formatos
+            if (!src) return;
 
+            setStageQuantity(prev =>
+                prev.map(s =>
+                    s.id === stageId ? { ...s, backgroundUrl: src } : s
+                )
+            );
+            setBgUrlState(src);
+        };
 
+        window.addEventListener("SG_SET_BG", onSetBg);
+        return () => window.removeEventListener("SG_SET_BG", onSetBg);
+    }, [stageId, setStageQuantity]);
+
+    //    também captura e salva NA PÁGINA ATUAL
+    useEffect(() => {
+        if (!bgUrl) return;
+        setStageQuantity(prev =>
+            prev.map(s =>
+                s.id === stageId ? { ...s, backgroundUrl: bgUrl } : s
+            )
+        );
+        setBgUrlState(bgUrl);
+    }, [bgUrl, stageId, setStageQuantity]);
+
+    //    Se a página não tiver backgroundUrl, ela ficara em branco
+    const pageBgUrl = currentStage?.backgroundUrl || "";
+    const [bg] = useImage(pageBgUrl, "anonymous");
+
+    // BAIXAR IMAGEM
+    
+
+    useEffect(() => {
+        const onExport = async (e) => {
+            const filename = e?.detail?.filename ?? 'Tabloide.png';
+            const pixelRatio = e?.detail?.pixelRatio ?? 3;
+            const stage = stageRef?.current;
+            if (!stage) {
+                console.warn('StageRef ausente no StageContent');
+                return;
+            }
+                
+            try {
+                setExporting(true);
+                await new Promise((r) => requestAnimationFrame(r));
+
+                const dataURL = stage.toDataURL({ pixelRatio, mimeType: 'image/png' });
+
+                const a = document.createElement('a');
+                a.href = dataURL;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (err) {
+                console.error('Falha ao exportar (CORS pode estar bloqueando):', err);
+                alert('Não foi possível exportar a imagem. Veja o console para detalhes.');
+            } finally {
+                setExporting(false);
+            }
+        };
+
+        window.addEventListener('SG_EXPORT', onExport);
+        return () => window.removeEventListener('SG_EXPORT', onExport);
+    }, []);
 
     return (
         <div ref={containerRef}>
@@ -296,7 +359,7 @@ export const StageContent = ({
                 className="konva-content"
                 style={{ position: "relative", marginRight: "40px", marginTop: "30%" }}
             >
-                {/* ⬅️ Input HTML fica FORA da Stage (sobreposição) */}
+                {/*  Input HTML fica FORA da Stage (sobreposição) */}
                 {editingTextIndex !== null && (
                     <input
                         className="changeText"
@@ -320,15 +383,14 @@ export const StageContent = ({
                         }}
                     />
                 )}
-
-                {/* ✅ ÚNICA Stage no tamanho EXATO do select (sem scale extra) */}
+                {/* ÚNICA stage no tamanho EXATO do select (sem scale extra)   */}
                 <Stage
                     className="Stage"
                     ref={stageRef}
                     style={{ border: "1px solid", backgroundColor: "white" }}
                     width={selectedTabloid?.width ?? 600}
                     height={selectedTabloid?.height ?? 800}
-                    scaleX={konvaScale}   // zoom seu (se quiser 1:1, mantenha em 1)
+                    scaleX={konvaScale}   // zoom 
                     scaleY={konvaScale}
                     x={positionKonva.x}
                     y={positionKonva.y}
@@ -339,9 +401,23 @@ export const StageContent = ({
                             setSelectedText(null);
                             handleDeselect();
                         }
+
+                        {
+                            exporting && (
+                                <Layer listening={false}>
+                                    <Rect
+                                        x={0}
+                                        y={0}
+                                        width={selectedTabloid?.width ?? 600}
+                                        height={selectedTabloid?.height ?? 800}
+                                        fill="white"
+                                    />
+                                </Layer>
+                            )
+                        }
                     }}
                 >
-                    {/* 🔒 BACKGROUND TRAVADO como primeira layer */}
+                    {/* BACKGROUND TRAVADO como primeira layer */}
                     <Layer listening={false}>
                         {bg && (() => {
                             const stageW = selectedTabloid?.width ?? 600;   // largura atual do canvas
@@ -395,7 +471,7 @@ export const StageContent = ({
                         )}
                     </Layer>
 
-                    {/* Suas layers inalteradas */}
+                    {/*  layers inalteradas */}
                     <Layer id="shapesLayer">
                         {currentStage?.shapes?.map((shape) => (
                             <ShapesLayer
@@ -554,7 +630,7 @@ export const StageContent = ({
 
             {/* Botões fora da Stage */}
             <div style={{ display: "flex", gap: "10px" }}>
-                {/* ... seus botões exatamente como estavam ... */}
+                {/* ...  botões  ... */}
                 <Button onClick={onClearCurrentPage} style={{ width: "20%", marginTop: "10px" }}>
                     Limpar Página
                 </Button>

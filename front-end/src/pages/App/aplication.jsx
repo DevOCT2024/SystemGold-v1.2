@@ -528,30 +528,77 @@ const Aplication = () => {
 
     };
 
-    const handleOutlineSize = (selectedSize) => {
-        if (selectedShape) {
+    // const handleOutlineSize = (selectedSize) => {
+    //     if (selectedShape) {
 
-            setTexts((prevTexts) =>
-                prevTexts.map((textItem) =>
-                    textItem.id === selectedShape.attrs.id
-                        ? {
-                            ...textItem,
-                            strokeTam: selectedSize
-                        }
-                        : textItem
-                ))
-        }
-    }
+    //         setTexts((prevTexts) =>
+    //             prevTexts.map((textItem) =>
+    //                 textItem.id === selectedShape.attrs.id
+    //                     ? {
+    //                         ...textItem,
+    //                         strokeTam: selectedSize
+    //                     }
+    //                     : textItem
+    //             ))
+    //     }
+    // }
+
+    const INITIAL_STAGE = { shapes: [], texts: [] };
+    const [currentStage, setCurrentStage] = React.useState(INITIAL_STAGE);
+
 
     const handleColorChange = (color) => {
+        if (!selectedShape) return;
 
-        if (selectedShape) {
-            (shapes.find((shape) => shape.id === selectedShape.attrs.id)).fill = color
+        const node = selectedShape;                 // nó Konva selecionado
+        const id = node?.attrs?.id;                 // id que você já usa
+        const nodeType = node?.getClassName?.();    // 'Text', 'Rect', 'Star', etc.
 
-            selectedShape.fill(color);
-            selectedShape.getLayer().batchDraw();
+        // 1) Atualiza o estado "fonte da verdade" que o Stage lê
+        setCurrentStage((prev) => {
+            if (!prev) return prev;
+
+            if (nodeType === 'Text') {
+                const texts = prev.texts?.map((t) =>
+                    t.id === id
+                        ? {
+                            ...t,
+                            fill: color,
+                            // por via das dúvidas, desligue gradiente:
+                            isGradient: false,
+                            fillLinearGradientColorStops: undefined,
+                            fillLinearGradientStartPoint: undefined,
+                            fillLinearGradientEndPoint: undefined,
+                        }
+                        : t
+                );
+                return { ...prev, texts };
+            } else {
+                const shapes = prev.shapes?.map((s) =>
+                    s.id === id
+                        ? {
+                            ...s,
+                            fill: color,
+                            isGradient: false,
+                            fillLinearGradientColorStops: undefined,
+                            fillLinearGradientStartPoint: undefined,
+                            fillLinearGradientEndPoint: undefined,
+                        }
+                        : s
+                );
+                return { ...prev, shapes };
+            }
+        });
+
+        // 2) Atualiza o nó Konva atual (efeito visual imediato)
+        try {
+            node.fill(color);
+            node.getLayer()?.batchDraw();
+        } catch (_) {
+            // silencioso: se o nó não existir, o estado acima ainda garante a atualização
         }
     };
+
 
     const handleGradientColorChange = (startColor, endColor) => {
         // Verifica se um texto ou forma está selecionado
@@ -701,24 +748,75 @@ const Aplication = () => {
     };
 
 
+    // helper: normaliza hex (#RGB e #RGBA curto) para #RRGGBB
+    const normalizeHex = (hex) => {
+        if (!hex) return "#000000";
+        if (/^#([0-9a-fA-F]{4})$/.test(hex)) {
+            // #RGBA curto -> usa só RGB duplicado
+            const h = hex.slice(1);
+            return "#" + h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+        }
+        if (/^#([0-9a-fA-F]{3})$/.test(hex)) {
+            const h = hex.slice(1);
+            return "#" + h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+        }
+        return hex;
+    };
+
     const handleOutlineColorChange = (color) => {
         const optionOutline = document.getElementById("outLineSelect");
+        optionOutline?.focus();
 
-        optionOutline.focus()
-        if (selectedShape) {
+        if (!selectedShape) return;
+        // garanta que é um Text (não mexe em shapes)
+        if (selectedShape.getClassName && selectedShape.getClassName() !== "Text") return;
 
-            setTexts((prevTexts) =>
-                prevTexts.map((textItem) =>
-                    textItem.id === selectedShape.attrs.id
-                        ? {
-                            ...textItem,
-                            outline: color,
-                            strokeTam: 1
-                        }
-                        : textItem
-                ))
-        }
-    }
+        const id = selectedShape.attrs?.id;
+        const safeColor = normalizeHex(color);
+
+        // 1) atualiza o estado base (lido pelo TextsLayer)
+        setTexts((prevTexts) =>
+            prevTexts.map((t) =>
+                t.id === id
+                    ? {
+                        ...t,
+                        outline: safeColor,
+                        // se não tiver espessura ainda, define 1 como padrão
+                        strokeTam: t.strokeTam > 0 ? t.strokeTam : 1,
+                    }
+                    : t
+            )
+        );
+
+        // 2) sincroniza o nó Konva atual (feedback imediato e mantém seu disabled em dia)
+        try {
+            const strokeTam = selectedShape.attrs.strokeTam > 0 ? selectedShape.attrs.strokeTam : 1;
+            selectedShape.setAttrs({ outline: safeColor, strokeTam });
+            selectedShape.getLayer()?.batchDraw();
+        } catch { }
+    };
+
+    const handleOutlineSize = (selectedSize) => {
+        if (!selectedShape) return;
+        if (selectedShape.getClassName && selectedShape.getClassName() !== "Text") return;
+
+        const id = selectedShape.attrs?.id;
+        const width = Number(selectedSize) || 0;
+
+        // 1) atualiza estado
+        setTexts((prevTexts) =>
+            prevTexts.map((t) =>
+                t.id === id ? { ...t, strokeTam: width } : t
+            )
+        );
+
+        // 2) sincroniza nó Konva
+        try {
+            selectedShape.setAttrs({ strokeTam: width });
+            selectedShape.getLayer()?.batchDraw();
+        } catch { }
+    };
+
 
     //funções do histórico
     const handlePrev = () => {
@@ -1375,7 +1473,7 @@ const Aplication = () => {
     };
 
     const handleTransformEndAndSaveToHistory = (type) => {
-        
+
         const transformHandlers = {
             shape: () => {
                 const newShapes = shapes.map((shape) => {
@@ -1477,72 +1575,10 @@ const Aplication = () => {
     }
 
     //Função para baixar (MANTEVE O MESMO NOME)
-    const exportImage = async () => {
-        try {
-            // 1) Encontrar o Stage (preferência: stageRef; fallback: selectedShape/shapesRefs)
-            let stage = stageRef?.current;
-            if (!stage && selectedShape?.getStage) stage = selectedShape.getStage?.();
-            if (!stage && shapesRefs?.current) {
-                const nodes = Object.values(shapesRefs.current);
-                if (nodes.length && nodes[0]?.getStage) stage = nodes[0].getStage();
-            }
-
-            // 2) Se não achou o Stage, usa o exporter como último recurso (transparente)
-            if (!stage) {
-                console.warn('Stage não encontrado. Usando exporter como fallback (fundo transparente).');
-                if (exporter?.exportPNG) {
-                    exporter.exportPNG({ filename: 'Tabloide.png', pixelRatio: 3 });
-                }
-                return;
-            }
-
-            // 3) Exporta o Stage como dataURL (transparente)
-            const pixelRatio = 3;
-            let dataUrl;
-            try {
-                dataUrl = stage.toDataURL({ pixelRatio, mimeType: 'image/png' });
-            } catch (e) {
-                console.error('Falha ao capturar Stage. Verifique CORS das imagens.', e);
-                // fallback transparente pelo exporter (se existir)
-                if (exporter?.exportPNG) {
-                    exporter.exportPNG({ filename: 'Tabloide.png', pixelRatio });
-                }
-                return;
-            }
-
-            // 4) Compor com FUNDO BRANCO em um <canvas> e gerar Blob
-            const blob = await new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => {
-                    try {
-                        const c = document.createElement('canvas');
-                        c.width = img.width;
-                        c.height = img.height;
-                        const ctx = c.getContext('2d');
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(0, 0, c.width, c.height);
-                        ctx.drawImage(img, 0, 0);
-                        c.toBlob((b) => {
-                            if (!b) return reject(new Error('Falha ao gerar PNG.'));
-                            resolve(b);
-                        }, 'image/png');
-                    } catch (err) {
-                        reject(err);
-                    }
-                };
-                img.onerror = reject;
-                img.crossOrigin = 'anonymous'; // importante se houver imagens externas com CORS
-                img.src = dataUrl;
-            });
-
-            // 5) Pergunta onde salvar (ou baixa direto caso o navegador não suporte)
-            await saveBlobToDisk(blob, 'Tabloide.png');
-
-            // 6) (Opcional) Enviar para o backend se estiver disponível
-
-        } catch (err) {
-            console.error(err);
-        }
+    const exportImage = () => {
+        window.dispatchEvent(new CustomEvent('SG_EXPORT', {
+            detail: { filename: 'Tabloide.png', pixelRatio: 3 }
+        }));
     };
 
     // BOTAO DE LIMPAR TODA AGINA 
@@ -1597,39 +1633,39 @@ const Aplication = () => {
         stageRef?.current?.batchDraw?.();
     };
 
-    // TABLOID SECTION UTILIZANDO SOMENTE BOTAO ESCOLHER LAYOUT 
+    // // TABLOID SECTION UTILIZANDO SOMENTE BOTAO ESCOLHER LAYOUT 
 
-    const [stageSize, setStageSize] = React.useState({ width: 1080, height: 1440 });
-    const [backgroundUrl, setBackgroundUrl] = React.useState(null);
+    // const [stageSize, setStageSize] = React.useState({ width: 1080, height: 1440 });
+    // const [backgroundUrl, setBackgroundUrl] = React.useState(null);
 
-    // quando o usuário escolhe um "variant" no modal
-    // NÃO ESTÁ FUNCIONANDO, MEXER MAIS TARDE NISSO
-    
-    // const onApplyLayoutVariant = (variant) => {
-    //     // se você servir via backend/CDN, ajuste essa URL
-    //     const url = `/${variant.imageKey}`;
-    //     setBackgroundUrl(url);
-    //     setStageSize({ width: variant.widthPx, height: variant.heightPx });
+    // // quando o usuário escolhe um "variant" no modal
+    // // NÃO ESTÁ FUNCIONANDO, MEXER MAIS TARDE NISSO
+
+    // // const onApplyLayoutVariant = (variant) => {
+    // //     // se você servir via backend/CDN, ajuste essa URL
+    // //     const url = `/${variant.imageKey}`;
+    // //     setBackgroundUrl(url);
+    // //     setStageSize({ width: variant.widthPx, height: variant.heightPx });
+    // // };
+
+    // // quando escolher formato manual (ex.: via <select>)
+    // const onApplyManualFormat = ({ width, height }) => {
+    //     setStageSize({ width, height });
     // };
 
-    // quando escolher formato manual (ex.: via <select>)
-    const onApplyManualFormat = ({ width, height }) => {
-        setStageSize({ width, height });
-    };
+    // const [pickedLayout, setPickedLayout] = useState({
+    //     bgUrl: null,
+    //     width: 600,
+    //     height: 800,
+    // });
 
-    const [pickedLayout, setPickedLayout] = useState({
-        bgUrl: null,
-        width: 600,
-        height: 800,
-    });
-
-    function handleLayoutPicked({ url, widthPx, heightPx }) {
-        setPickedLayout({
-            bgUrl: url,
-            width: Number(widthPx) || 600,
-            height: Number(heightPx) || 800,
-        });
-    }
+    // function handleLayoutPicked({ url, widthPx, heightPx }) {
+    //     setPickedLayout({
+    //         bgUrl: url,
+    //         width: Number(widthPx) || 600,
+    //         height: Number(heightPx) || 800,
+    //     });
+    // }
 
 
     return (

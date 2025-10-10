@@ -5,45 +5,40 @@ export function TextsLayer({
     handleSelect,
     handleDragEnd,
     enableTextEditing,
-    shapesRefs
+    shapesRefs,
 }) {
     return (
         <>
-            {/* Contorno do texto */}
+            {/* Contorno - SÓ visual, não interativo, mas funciona normalmente */}
             <Text
-                text={text.text}
-                fontSize={text.fontSize || 24}
-                fontFamily="Arial"
-                x={text.x}
-                y={text.y}
-                fill="transparent" // Deixa o interior transparente
-                stroke={text.outline} // Define a cor do contorno
-                strokeWidth={text.strokeTam} // Ajusta o strokeWidth com base no fontSize
-                scaleX={text.scaleX || 1}  // Aplica a escala X
-                scaleY={text.scaleY || 1}  // Aplica a escala Y
-                onClick={handleSelect}
-                {...text}
-
+                {...text}                       // spread ANTES
+                id={`${text.id}-outline`}       // id distinto (evita confusão)
+                fill="transparent"              // interior transparente
+                stroke={text.outline}           // cor do contorno
+                strokeWidth={text.strokeTam || 0} // espessura (0 = sem contorno)
+                lineJoin="round"                // cantos arredondados (melhora estética)
+                strokeScaleEnabled={false}      // stroke não deforma com escala/zoom
+                draggable={false}
+                listening={false}               // não rouba clique
             />
 
 
-            {/* Texto original por cima */}
+            {/* Texto principal - interativo */}
             <Text
-                text={text.text}
-                onDragEnd={(e) => handleDragEnd(text.id, e, 'texts')}
+                {...text}                                  // spread ANTES
+                fill={text.fill ?? "#000000"}              // cor do texto (por último)
                 fontSize={text.fontSize || 24}
-                {...text}
-                draggable
+                fontFamily={text.fontFamily || "Microsoft"}
                 x={text.x}
                 y={text.y}
+                draggable
                 stroke={null}
-                fill="black"
+                onDragEnd={(e) => handleDragEnd(text.id, e, "texts")}
                 onDblClick={() => enableTextEditing(text.id, text.x, text.y, text.text)}
-                onClick={(e) => handleSelect(e, text)}
-                onTap={(e) => handleSelect(e, text)}
-                ref={(node) => (shapesRefs.current[text.id] = node)}
-                fontFamily="Microsoft"
+                onClick={(e) => handleSelect(e, { ...text, type: "text" })} // 3) força type
+                onTap={(e) => handleSelect(e, { ...text, type: "text" })}
+                ref={(node) => (shapesRefs.current[text.id] = node)}         // ref SÓ no principal
             />
         </>
-    )
+    );
 }

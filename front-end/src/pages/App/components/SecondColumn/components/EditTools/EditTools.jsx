@@ -507,13 +507,13 @@ export const EditTools = ({
         <div className="fundo">
           <p>Preenchimento</p>
           <button
-            style={{ backgroundColor: "#FFFF" }}
-            onClick={(e) => handleColorChange("#FFFF")}
+            style={{ backgroundColor: "#FFFFFF" }}
+            onClick={(e) => handleColorChange("#FFFFFF")}
           ></button>{" "}
           {/*Botão cor Branco*/}
           <button
-            style={{ backgroundColor: "#000" }}
-            onClick={(e) => handleColorChange("#000")}
+            style={{ backgroundColor: "#000000" }}
+            onClick={(e) => handleColorChange("#000000")}
           ></button>{" "}
           {/*Botão cor Preto*/}
           <button

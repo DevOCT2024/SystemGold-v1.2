@@ -199,7 +199,7 @@ const FirstColumn = ({
             const baseW = 120;
             const ratio = srcCanvas.width / Math.max(1, srcCanvas.height);
             const w = baseW;
-            const h = Math.round(baseW / ratio);
+            const h = Math.round(baseW / ratio); 
 
             const out = document.createElement("canvas");
             out.width = w; out.height = h;

@@ -82,7 +82,7 @@ export function ShapesLayer({
                 numPoints={shape.numPoints}
                 innerRadius={shape.innerRadius}
                 outerRadius={shape.outerRadius}
-                stroke="black"
+                stroke="red"
                 strokeWidth={2}
                 onClick={(e) => handleSelect(e, shape)}
                 onTap={(e) => handleSelect(e, shape)}
