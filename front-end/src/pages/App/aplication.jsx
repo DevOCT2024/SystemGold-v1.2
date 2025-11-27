@@ -32,7 +32,15 @@ const Aplication = () => {
 
     const [stageQuantity, setStageQuantity] = useState([{ id: 1, products: [], copies: [], texts: [], shapes: [], boxData: [], stampsKonva: [], hasValidateDate: false, formatedDateInitial: '', formatedDateFinal: '', history: [] }])
 
-
+    if (typeof window !== 'undefined' && !window.__corsImgShim) {
+        const NativeImage = window.Image;
+        window.Image = function (...args) {
+            const img = new NativeImage(...args);
+            try { img.crossOrigin = 'anonymous'; } catch { }
+            return img;
+        };
+        window.__corsImgShim = true;
+    }
 
     const [quantityProduct, setQuantityProduct] = useState(0)
     const [valueInputs, setValueInputs] = useState(['']);
@@ -509,6 +517,7 @@ const Aplication = () => {
 
     // funções editTools
 
+    //FUNÇÃO DO BOTÃO DE LOCALIZAÇÃO - SEM FUNÇÃO APARENTE SOMENTE COR DO BOTÃO 
     const handleAdressButton = () => {
         const buttons = document.getElementsByClassName("addressButton");
         if (buttons.length > 0) {
@@ -521,12 +530,27 @@ const Aplication = () => {
     const handleSelectFont = (selectedFont) => {
 
         setSelectedOptionFont(selectedFont);
+
+        if (!selectedShape) return;
+
+        // 1) Atualiza o texto principal (como já fazia)
         if (selectedShape.attrs.text) {
             selectedShape.fontFamily(selectedFont);
-            selectedShape.getLayer().batchDraw();
-        }
 
+            // 2) Acha o outline pelo id
+            const layer = selectedShape.getLayer();
+            const outline = layer?.findOne?.(`#${selectedShape.attrs.id}-outline`);
+
+            // 3) Atualiza a fonte do contorno (SE existir)
+            if (outline) {
+                outline.fontFamily(selectedFont);
+            }
+
+            // 4) Redesenha a layer
+            layer.batchDraw();
+        }
     };
+
 
     // const handleOutlineSize = (selectedSize) => {
     //     if (selectedShape) {
@@ -763,6 +787,12 @@ const Aplication = () => {
         return hex;
     };
 
+    const getProductBaseId = (nodeId = "") => {
+        if (nodeId.endsWith("-price")) return nodeId.replace(/-price$/, "");
+        if (nodeId.endsWith("-name-text")) return nodeId.replace(/-name-text$/, "");
+        return null;
+    };
+
     const handleOutlineColorChange = (color) => {
         const optionOutline = document.getElementById("outLineSelect");
         optionOutline?.focus();
@@ -774,19 +804,36 @@ const Aplication = () => {
         const id = selectedShape.attrs?.id;
         const safeColor = normalizeHex(color);
 
-        // 1) atualiza o estado base (lido pelo TextsLayer)
-        setTexts((prevTexts) =>
-            prevTexts.map((t) =>
-                t.id === id
-                    ? {
-                        ...t,
-                        outline: safeColor,
-                        // se não tiver espessura ainda, define 1 como padrão
-                        strokeTam: t.strokeTam > 0 ? t.strokeTam : 1,
-                    }
-                    : t
-            )
-        );
+        const productId = getProductBaseId(id);
+
+        if (productId && typeof setProducts === "function") {
+            // === PRODUTOS ===
+            setProducts((prev) =>
+                prev.map((p) =>
+                    p.id === productId
+                        ? {
+                            ...p,
+                            outline: safeColor,
+                            // se não tiver espessura ainda, define 1 como padrão
+                            strokeTam: p.strokeTam > 0 ? p.strokeTam : 1,
+                        }
+                        : p
+                )
+            );
+        } else {
+            // === TEXTOS (como já era) ===
+            setTexts((prevTexts) =>
+                prevTexts.map((t) =>
+                    t.id === id
+                        ? {
+                            ...t,
+                            outline: safeColor,
+                            strokeTam: t.strokeTam > 0 ? t.strokeTam : 1,
+                        }
+                        : t
+                )
+            );
+        }
 
         // 2) sincroniza o nó Konva atual (feedback imediato e mantém seu disabled em dia)
         try {
@@ -803,12 +850,19 @@ const Aplication = () => {
         const id = selectedShape.attrs?.id;
         const width = Number(selectedSize) || 0;
 
-        // 1) atualiza estado
-        setTexts((prevTexts) =>
-            prevTexts.map((t) =>
-                t.id === id ? { ...t, strokeTam: width } : t
-            )
-        );
+        const productId = getProductBaseId(id);
+
+        if (productId && typeof setProducts === "function") {
+            // === PRODUTOS ===
+            setProducts((prev) =>
+                prev.map((p) => (p.id === productId ? { ...p, strokeTam: width } : p))
+            );
+        } else {
+            // === TEXTOS (como já era) ===
+            setTexts((prevTexts) =>
+                prevTexts.map((t) => (t.id === id ? { ...t, strokeTam: width } : t))
+            );
+        }
 
         // 2) sincroniza nó Konva
         try {
@@ -817,64 +871,120 @@ const Aplication = () => {
         } catch { }
     };
 
+    // function textdetailOutline() {
+    //     console.log("outline exposta")
+    //     function describe('first', () => { second }) (params) {
+    //     }
+    // };
 
-    //funções do histórico
+
+    // funções do histórico
+    function rehydrateProducts(products = []) {
+        return products.map((product) => {
+            const { imageSrc, ...rest } = product;
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = imageSrc;
+            img.onload = () => { };
+            img.onerror = (err) => {
+                console.error(`Erro ao carregar a imagem do produto ${product?.name ?? ''}:`, err);
+            };
+            return { ...rest, imageSrc, image: img };
+        });
+    }
+
+    // import { Outline } from '@react-three/postprocessing';
+    // import { BlendFunction, KernelSize } from 'postprocessing'
+
+
+    // <Outline
+    //     selection={[meshRef1, meshRef2]} // selection of objects that will be outlined
+    //     selectionLayer={10}// selection layer
+    //     blendFunction={BlendFunction.SCREEN} // set this to BlendFunction.ALPHA for dark outlines
+    //     patternTexture={null} // a pattern texture
+    //     edgeStrength={2.5} // the edge strength
+    //     pulseSpeed={0.0} // a pulse speed. A value of zero disables the pulse effect
+    //     visibleEdgeColor={0xffffff} // the color of visible edges
+    //     hiddenEdgeColor={0x22090a} // the color of hidden edges
+    //     width={Resizer.AUTO_SIZE} // render width
+    //     height={Resizer.AUTO_SIZE} ()// render height
+    //     kernelSize={KernelSize.LARGE} // blur kernel size
+    //     blur={false} // whether the outline should be blurred
+    //     xRay={true} // indicates whether X-Ray outlines are enabled
+    // />
+
+
+
+    // NOVO: rehidratar boxes
+    function rehydrateBoxes(boxes = []) {
+        return boxes.map((box) => {
+            const { imageSrc, ...rest } = box;
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = imageSrc;
+            img.onload = () => { };
+            img.onerror = (err) => {
+                console.error(`Erro ao carregar a imagem do box ${box?.id ?? ''}:`, err);
+            };
+            return { ...rest, imageSrc, image: img };
+        });
+    }
+
+    // NOVO: rehidratar stamps
+    function rehydrateStamps(stamps = []) {
+        return stamps.map((stamp) => {
+            const { imageSrc, ...rest } = stamp;
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = imageSrc;
+            img.onload = () => { };
+            img.onerror = (err) => {
+                console.error(`Erro ao carregar a imagem do selo ${stamp?.id ?? ''}:`, err);
+            };
+            return { ...rest, imageSrc, image: img };
+        });
+    }
+
+    function restoreFromHistory(targetIndex) {
+        if (!Array.isArray(history) || targetIndex < 0 || targetIndex >= history.length) return;
+
+        const snapshot = history[targetIndex];
+        if (!snapshot) return;
+
+        const {
+            shapes = [],
+            products = [],
+            copies = [],
+            texts = [],
+            boxData = [],       // <- NOVO
+            stampsKonva = [],   // <- NOVO
+        } = snapshot;
+
+        const productsWithImages = rehydrateProducts(products);
+        const boxesWithImages = rehydrateBoxes(boxData);       // <- NOVO
+        const stampsWithImages = rehydrateStamps(stampsKonva);  // <- NOVO
+
+        setShapes(shapes);
+        setProducts(productsWithImages);
+        setCopies(copies);
+        setTexts(texts);
+        setBoxData(boxesWithImages);         // <- NOVO
+        setStampsKonva(stampsWithImages);    // <- NOVO
+
+        setCurrentHistoryIndex(targetIndex);
+    }
+
     const handlePrev = () => {
         if (currentHistoryIndex > 0) {
-            const prevIndex = currentHistoryIndex - 1;
-            const { shapes, products, copies, texts } = history[prevIndex];
-            const productsWithImages = products.map((product) => {
-                const newImage = new Image();
-                newImage.src = product.imageSrc;
-                newImage.onload = () => {
-
-                };
-
-                newImage.onerror = (err) => {
-                    console.error(`Erro ao carregar a imagem do produto ${product.name}:`, err);
-                };
-
-                return {
-                    ...product,
-                    image: newImage // Atribui a nova imagem ao produto
-                };
-            });
-
-            setShapes(shapes);
-            setProducts(productsWithImages);
-            setCopies(copies);
-            setTexts(texts); // Restaura texts do histórico
-            setCurrentHistoryIndex(prevIndex);
+            restoreFromHistory(currentHistoryIndex - 1);
         }
     };
 
+    //  const handlePrev = () => {};
+
     const handleNext = () => {
-        if (currentHistoryIndex < history.length - 1) {
-            const nextIndex = currentHistoryIndex + 1;
-            const { shapes, products, copies, texts } = history[nextIndex];
-            const productsWithImages = products.map((product) => {
-                const newImage = new Image();
-                newImage.src = product.imageSrc;
-                newImage.onload = () => {
-
-                };
-
-                newImage.onerror = (err) => {
-                    console.error(`Erro ao carregar a imagem do produto ${product.name}:`, err);
-                };
-
-                return {
-                    ...product,
-                    image: newImage // Atribui a nova imagem ao produto
-                };
-            });
-
-            setShapes(shapes);
-            setProducts(productsWithImages);
-            setCopies(copies);
-            setTexts(texts); // Restaura texts do histórico
-            setCurrentHistoryIndex(nextIndex);
-
+        if (history.length > 0 && currentHistoryIndex < history.length - 1) {
+            restoreFromHistory(currentHistoryIndex + 1);
         }
     };
 
@@ -916,8 +1026,8 @@ const Aplication = () => {
             const newCopy = {
                 ...selectedShape.attrs,
                 id: `${Date.now()}`, // Gera um novo ID único
-                x: selectedShape.attrs.x, // Mantém a posição x original
-                y: selectedShape.attrs.y + 10, // Ajusta a posição y para a duplicata
+                x: selectedShape.attrs.x - 30, // Mantém a posição x original
+                y: selectedShape.attrs.y + 30, // Ajusta a posição y para a duplicata
                 fill: selectedShape.attrs.fill
             };
 

@@ -41,6 +41,26 @@ export function ProductLayer({
   const bw = num(product?.width, 80);
   const bh = num(product?.height, 80);
 
+  const syncOutlineTransform = (node) => {
+    if (!node) return;
+    const layer = node.getLayer();
+    if (!layer) return;
+
+    const outline = layer.findOne(`#${node.id()}-outline`);
+    if (!outline) return;
+
+    outline.position(node.position());
+    outline.rotation(node.rotation());
+    outline.scaleX(node.scaleX());
+    outline.scaleY(node.scaleY());
+    outline.offsetX(node.offsetX());
+    outline.offsetY(node.offsetY());
+    outline.skewX(node.skewX());
+    outline.skewY(node.skewY());
+
+    layer.batchDraw();
+  };
+
   return (
     <>
       <KonvaImage
@@ -54,140 +74,147 @@ export function ProductLayer({
         onClick={(e) => handleSelect(e, product)}
         onTap={(e) => handleSelect(e, product)}
 
-        //  IMPORTANTE: não chama setState aqui!
         onDragMove={(e) => {
-          // Apenas redesenha a layer para suavidade
           e.target.getLayer()?.batchDraw();
         }}
-
-        // Commit da posição no fim do drag (seu handler já lê do evento)
         onDragEnd={(e) => handleDragEnd(product.id, e, "product")}
-
         onTransformEnd={() => handleTransformEndAndSaveToHistory("product")}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
 
-        // sobrescreve quaisquer x/y/width/height de {...rest} com valores seguros
         x={bx}
         y={by}
         width={bw}
         height={bh}
         {...(() => {
-          // removemos 'image' de rest para não sobrescrever acima
           const { image: _legacyImage, ...rest } = product || {};
-          return rest;
+          return rest
         })()}
       />
 
       {/* Nome do produto */}
       <Group id={product.id + "name"} draggable>
+        {/* CONTORNO DO NOME */}
+        <Text
+          key={`${product.id}-name-outline`}
+          id={`${product.id}-name-text-outline`}
+          text={product?.name ?? ""}
+          fontFamily={Text.fontFamily || "Microsoft"}
+          fontSize={Text.fontSize || 24}
+          x={bx + 100}
+          y={by + 25}
+          fill="transparent"
+          stroke={product?.outline ?? "transparent"}      // cor do contorno
+          strokeWidth={(product?.strokeTam ?? 0) * 2}    // contorno mais forte pra fora
+          strokeScaleEnabled={false}
+          lineJoin="round"
+          listening={false}                               // não interfere em clique
+        />
+
+        {/* TEXTO PRINCIPAL DO NOME */}
         <Text
           key={product.id}
+          id={`${product.id}-name-text`}
           text={product?.name ?? ""}
-          fontFamily="Microsoft"
+          fontFamily={Text.fontFamily || "Microsoft"}
           onDblClick={() =>
             enableTextEditing(product.id, bx + 200, by + 200, product.name)
           }
-          fontSize={16}
+          fontSize={Text.fontSize || 24}
           x={bx + 100}   // usa bx/by seguros
           y={by + 25}
-          fill="black"
-          onClick={handleSelect}
+          fill={Text.fill ?? "#000000"}
+          onClick={handleSelect}  
           onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          onMouseLeave={handleMouseLeave}   
+
+         
+          outline={product?.outline ?? null}
+          strokeTam={product?.strokeTam ?? 0}
+
+         
+          stroke="transparent"
+          strokeWidth={0}
+          strokeScaleEnabled={false}
+          lineJoin="round"
+
+          // rotação e escala acompanham contorno
+          onTransform={(e) => syncOutlineTransform(e.target)}
+          onTransformEnd={(e) => syncOutlineTransform(e.target)}
         />
       </Group>
 
+
       {[
-        // --- Sem rádio ---
-        product.radio === "" && (
-          <Group
-            key={`grp-${product.id}-empty`}
-            ref={(node) => (groupRefs.current[index] = node)}
-            id={`${product.id}-grp`}
-            draggable
+         // --- Sem rádio ---
+  product.radio === "" && (
+    <Group
+      key={`grp-${product.id}-empty`}
+      ref={(node) => (groupRefs.current[index] = node)}
+      id={`${product.id}-grp`}
+      draggable
+      onClick={(e) => {
+        e.cancelBubble = true;
+        const grp = groupRefs.current[index];
+        const priceNode = grp?.findOne?.(`#${product.id}-price`);
+        handleSelect({ target: priceNode || grp });
+      }}
+      onTap={(e) => {
+        e.cancelBubble = true;
+        const grp = groupRefs.current[index];
+        const priceNode = grp?.findOne?.(`#${product.id}-price`);
+        handleSelect({ target: priceNode || grp });
+      }}
+    >
+      {/* CONTORNO DO PREÇO */}
+      <Text
+        id={`${product.id}-price-outline`}
+        text={`R$ ${product?.valor ?? ""}`}
+        fontSize={24}
+        x={bx + 100}
+        y={by + 40}
+        fontFamily="Microsoft"
+        letterSpacing={-1}
+        fill="transparent"
+        stroke={product?.outline ?? "transparent"}
+        strokeWidth={(product?.strokeTam ?? 0) * 2}
+        strokeScaleEnabled={false}
+        lineJoin="round"
+        listening={false}               
+      />
 
-            // Seleciona o GRUPO do preço para exibir as alças do Transformer
-            onClick={(e) => {
-              e.cancelBubble = true;
-              const grp = groupRefs.current[index];
-              if (grp) handleSelect({ target: grp });
-            }}
-            onTap={(e) => {
-              e.cancelBubble = true;
-              const grp = groupRefs.current[index];
-              if (grp) handleSelect({ target: grp });
-            }}
+    
 
-            // Converte scale -> fontSize, corrige "pulo" e evita o "R$" ser comido
-            onTransformEnd={() => {
-              const grp = groupRefs.current[index];
-              if (!grp) return;
+      {/* PREÇO PRINCIPAL ("R$ 12,34.00") */}
+      <Text
+        id={`${product.id}-price`}
+        text={`R$ ${product?.valor ?? ""}`}
+        fontSize={24}
+        x={bx + 100}
+        y={by + 40}
+        fontFamily="Microsoft"
+        letterSpacing={-1}
+        onClick={handleSelect}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
 
-              // bbox "visual" antes de resetar scale
-              const before = grp.getClientRect();
+        fill="black"                     // cor do texto
+        stroke="transparent"             // sem stroke aqui
+        strokeWidth={0}
+        strokeScaleEnabled={false}
+        lineJoin="round"
 
-              // fator de escala usado pelo usuário
-              const sx = Math.abs(grp.scaleX()) || 1;
-              const sy = Math.abs(grp.scaleY()) || 1;
-              const factor = Math.min(Math.max(Math.max(sx, sy), 0.5), 4);
+        // mantém esses attrs pro resto da app
+        outline={product?.outline ?? null}
+        strokeTam={product?.strokeTam ?? 0}
 
-              const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+        // contorno acompanha rotação/escala
+        onTransform={(e) => syncOutlineTransform(e.target)}
+        onTransformEnd={(e) => syncOutlineTransform(e.target)}
+      />
+    </Group>
 
-              // pega os Texts pelos IDs ORIGINAIS
-              const valueNode = grp.findOne(
-                (n) => n.getClassName?.() === 'Text' && n.id?.() === product.id + '- $'
-              );
-              const currencyNode = grp.findOne(
-                (n) => n.getClassName?.() === 'Text' && n.id?.() === product.id + '- price'
-              );
 
-              if (valueNode?.fontSize) valueNode.fontSize(clamp(valueNode.fontSize() * factor, 8, 300));
-              if (currencyNode?.fontSize) currencyNode.fontSize(clamp(currencyNode.fontSize() * factor, 6, 260));
-
-              // Re-layout horizontal: "R$" à esquerda, valor ao lado com gap
-              if (currencyNode && valueNode) {
-                const gap = 6;
-                // mantemos a margem esquerda aproximada
-                const baseX = Math.min(currencyNode.x(), valueNode.x());
-                currencyNode.x(baseX);
-                valueNode.x(currencyNode.x() + currencyNode.width() + gap);
-              }
-
-              // zera o scale p/ manter o texto nítido
-              grp.scale({ x: 1, y: 1 });
-
-              // bbox após ajustes
-              const after = grp.getClientRect();
-
-              // fixa o topo-esquerdo visual para não "pular"
-              grp.x(grp.x() + (before.x - after.x));
-              grp.y(grp.y() + (before.y - after.y));
-
-              grp.getLayer()?.batchDraw();
-              handleTransformEndAndSaveToHistory?.('price');
-            }}
-          >
-            <Text
-              id={product.id + "- $"}
-              text={product?.valor ?? ""}
-              fontSize={28}
-              x={bx + 117}      // usa bx/by seguros
-              y={by + 40}
-              fontFamily="Microsoft Bold"
-              letterSpacing={-1}
-              fill="black"
-            />
-            <Text
-              id={product.id + "- price"}
-              text={"R$"}
-              fontSize={14}
-              x={bx + 100}
-              y={by + 50}
-              fontFamily="Microsoft Bold"
-              fill="black"
-            />
-          </Group>
         ),
 
         // --- "de, por" ---

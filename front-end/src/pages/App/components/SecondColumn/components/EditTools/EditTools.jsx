@@ -250,7 +250,7 @@ export const EditTools = ({
               title={"Volte 1 Passo"}
               style={{ width: "30px", height: "30px", borderRadius: "50%" }}
               onClick={handlePrev}
-              disabled={currentHistoryIndex === 0}
+              disabled={history.length === 0 || currentHistoryIndex <= 0}
             >
               <FontAwesomeIcon icon={faArrowRotateLeft} />
             </Button>
@@ -314,7 +314,7 @@ export const EditTools = ({
               title={"Avançar 1 Passo"}
               style={{ width: "30px", height: "30px", borderRadius: "50%" }}
               onClick={handleNext}
-              disabled={currentHistoryIndex === history.length - 1}
+              disabled={history.length === 0 || currentHistoryIndex >= history.length - 1}
             >
               <FontAwesomeIcon icon={faArrowRotateRight} />
             </Button>

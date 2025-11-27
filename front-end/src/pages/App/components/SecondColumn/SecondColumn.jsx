@@ -246,8 +246,8 @@ const SecondColumn = ({
         prevStage={prevStage}
         nextStage={nextStage}
 
-        // ✅ PROPS NOVAS: fazem o “auto-clique” funcionar e somem os no-undef
-        registerExporter={registerExporter}                // ✅ registra o exporter do Stage
+        // PROPS NOVAS: fazem o “auto-clique” funcionar e somem os no-undef
+        registerExporter={registerExporter}                // registra o exporter do Stage
         exportImage={exportImage}
         pendingClickProductId={pendingClickProductId}
         onClickHandled={onClickHandled}

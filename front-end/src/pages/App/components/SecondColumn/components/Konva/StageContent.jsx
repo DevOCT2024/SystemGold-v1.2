@@ -93,10 +93,10 @@ export const StageContent = ({
     // stage atual
     const currentStage = stageQuantity.find((stage) => stage?.id === stageId);
 
-   
+
     const stageRef = useRef(null);
     const productLayerRef = useRef(null);
-   
+
     const downloadDataUrl = (dataURL, filename = 'Tabloide.png') => {
         const link = document.createElement('a');
         link.href = dataURL;
@@ -109,8 +109,8 @@ export const StageContent = ({
     const exportPNG = ({
         filename = 'Tabloide.png',
         pixelRatio = 3,             // qualidade (3x). Aumente se quiser ainda mais
-        mimeType = 'image/png',     
-        quality,                    
+        mimeType = 'image/png',
+        quality,
     } = {}) => {
         const stage = stageRef.current;
         if (!stage) return null;
@@ -134,7 +134,7 @@ export const StageContent = ({
                 },
             });
         }
-        
+
     }, [registerExporter]);
 
 
@@ -173,6 +173,8 @@ export const StageContent = ({
             setTextSize({ width, height });
         }
     }, [textRefAdress.current]);
+
+    
 
     useEffect(() => {
         const imgWhats = () => {
@@ -314,43 +316,60 @@ export const StageContent = ({
     //    Se a página não tiver backgroundUrl, ela ficara em branco
     const pageBgUrl = currentStage?.backgroundUrl || "";
     const [bg] = useImage(pageBgUrl, "anonymous");
-
-    // BAIXAR IMAGEM
     
 
-    useEffect(() => {
-        const onExport = async (e) => {
-            const filename = e?.detail?.filename ?? 'Tabloide.png';
-            const pixelRatio = e?.detail?.pixelRatio ?? 3;
-            const stage = stageRef?.current;
-            if (!stage) {
-                console.warn('StageRef ausente no StageContent');
-                return;
-            }
-                
-            try {
-                setExporting(true);
-                await new Promise((r) => requestAnimationFrame(r));
+    // BAIXAR IMAGEM NO BOTÃO EXPORTAR a imagem a seguir como vejo a seguir ⬇️
+    useEffect(() => {   
+  // aguarda todas as imagens do stage carregarem antes de exportar
+  async function waitImagesLoaded(stage, timeoutMs = 5000) {
+    const t0 = performance.now();
+    while (performance.now() - t0 < timeoutMs) {
+      const nodes = stage.find('Image');
+      const ok = nodes.every((n) => {
+        const el = n.image?.();
+        return el && el.complete && (el.naturalWidth ?? 1) > 0;
+      });
+      if (ok) return;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  }
 
-                const dataURL = stage.toDataURL({ pixelRatio, mimeType: 'image/png' });
+  const onExport = async (e) => {
+    const filename = e?.detail?.filename ?? 'Tabloide.png';
+    const pixelRatio = e?.detail?.pixelRatio ?? 3;
+    const stage = stageRef?.current;
+    if (!stage) {
+      console.warn('StageRef ausente no StageContent');
+      return;
+    }
 
-                const a = document.createElement('a');
-                a.href = dataURL;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            } catch (err) {
-                console.error('Falha ao exportar (CORS pode estar bloqueando):', err);
-                alert('Não foi possível exportar a imagem. Veja o console para detalhes.');
-            } finally {
-                setExporting(false);
-            }
-        };
+    try {
+      setExporting(true);
+      await new Promise((r) => requestAnimationFrame(r));
 
-        window.addEventListener('SG_EXPORT', onExport);
-        return () => window.removeEventListener('SG_EXPORT', onExport);
-    }, []);
+      // ⬇️ garante que as imagens/padrões estão carregados antes do toDataURL
+      await waitImagesLoaded(stage);
+
+      const dataURL = stage.toDataURL({ pixelRatio, mimeType: 'image/png' });
+
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      console.error('Falha ao exportar (CORS pode estar bloqueando):', err);
+      alert('Não foi possível exportar a imagem. Veja o console para detalhes.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  window.addEventListener('SG_EXPORT', onExport);
+  return () => window.removeEventListener('SG_EXPORT', onExport);
+}, []);
+
 
     return (
         <div ref={containerRef}>

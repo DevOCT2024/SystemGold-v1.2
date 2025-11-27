@@ -36,7 +36,7 @@ export const BoxDecoration = () => {
             try {
                 const response = await getStamps();
                 const list = Array.isArray(response) ? response : [];
-                // 🔄 antes: toDataUrl(item.img)
+                //  antes: toDataUrl(item.img)
                 const urls = list
                     .map((item) => item?.url || toUrl(item?.img))
                     .filter(Boolean);
@@ -53,7 +53,7 @@ export const BoxDecoration = () => {
             try {
                 const data = await getAllBoxs();
                 const list = Array.isArray(data) ? data : [];
-                // 🔄 antes: toDataUrl(item.img)
+                //  antes: toDataUrl(item.img)
                 const urls = list
                     .map((item) => item?.url || toUrl(item?.img))
                     .filter(Boolean);
@@ -240,24 +240,28 @@ export const BoxDecoration = () => {
             {/* Botões flutuantes para reabrir quando estiverem ocultos */}
             <div className="reopen-floating">
                 {!showStamps && (
-                    <button
-                        className="reopen-btn"
-                        onClick={() => showPanel("selo")}
-                        aria-label="Mostrar Selos"
-                        title="Mostrar Selos"
-                    >
-                        Selos
-                    </button>
+                    <div className="reopen-wrapper reopen-wrapper--stamps">
+                        <button
+                            className="reopen-btn"
+                            onClick={() => showPanel("selo")}
+                            aria-label="Mostrar Selos"
+                            title="Mostrar Selos"
+                        >
+                            Selos
+                        </button>
+                    </div>
                 )}
                 {!showBox && (
-                    <button
-                        className="reopen-btn"
-                        onClick={() => showPanel("box")}
-                        aria-label="Mostrar Box"
-                        title="Mostrar Box"
-                    >
-                        Box
-                    </button>
+                    <div className="reopen-wrapper reopen-wrapper--box">
+                        <button
+                            className="reopen-btn"
+                            onClick={() => showPanel("box")}
+                            aria-label="Mostrar Box"
+                            title="Mostrar Box"
+                        >
+                            Box
+                        </button>
+                    </div>
                 )}
             </div>
 

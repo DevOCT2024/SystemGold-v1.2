@@ -2,7 +2,7 @@
 .box-container {
     position: fixed;
     right: 1%; 
-    top: 300px; 
+    top: 380px; 
     display: flex;
     flex-direction: column;
     gap: 20px; 
@@ -26,7 +26,7 @@
 
 .box {
   width: 380px; 
-  height: 200px;
+  height: 220px;
   background-color: #ffffff; 
   border-radius: 15px; 
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); 
@@ -47,33 +47,19 @@
     transition: 0.1s;
   }
 
-  .box-hide-btn {
-  border: none;
-  background: transparent;
-  font-size: 17px;
-  background-color: #cfcccc;
-  cursor: pointer;
-  padding: 4px 4px;
-  border-radius: 12px;
-  width:40px;
-}
 
 .box-hide-btn:hover {
   background: #ee2828;
 }
  
-.reopen-floating {
-  position: fixed;  
-  right: 12px;
-  top: 80%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 9999; /* acima do conteúdo */
+.reopen-wrapper {
+  position: fixed;
+  right: 20px;
+  z-index: 9999;
 }
-  
- .reopen-btn {
+
+/* Mesma largura / altura / estilo pra todos os botões */
+.reopen-btn {
   border: none;
   cursor: pointer;
   padding: 8px 12px;
@@ -81,9 +67,22 @@
   background: #ee2828;
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   font-weight: 650;
-  min-width: 90px;
-  height: 50px;
+  min-width: 110px;
+  height: 45px;
+  color: #fff;
 }
+
 .reopen-btn:hover {
   filter: brightness(0.95);
+}
+
+/* posições verticais (empilhados) */
+
+
+.reopen-wrapper--examples {
+  bottom: 90px;
+}
+
+.reopen-wrapper--shortcuts {
+  bottom: 35px;
 }
